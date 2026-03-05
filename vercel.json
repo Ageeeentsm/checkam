@@ -1,13 +1,9 @@
-" id="28471"}
 {
   "framework": null,
   "outputDirectory": "public",
-  "functions": {
-    "api/.js": {
-      "runtime": "nodejs@20.x"
-    }
-  },
   "rewrites": [
     { "source": "/api/search", "destination": "/api/search" },
-    { "source": "/api/chat",   "destination": "/api/chat" },
-    { "source": "/(.)",       "destination": "/index.
+    { "source": "/api/chat",   "destination": "/api/chat"   },
+    { "source": "/(.*)",       "destination": "/index.html" }
+  ]
+}
