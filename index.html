@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Check Am — Nigeria Business Intelligence</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root {
+  --void:#04080a; --deep:#070f12; --raised:#0f1f26; --lifted:#152a34;
+  --rim:#1c3a47; --wire:#254d5e;
+  --amber:#e8a020; --amber2:#c8840a; --amber3:#f0c060;
+  --green:#0d9b3e; --green2:#0fc44e;
+  --red:#d63b2f; --red2:#ff5244;
+  --ice:#4dd8e8; --fog:#2a6070;
+  --text:#c8d8dc; --dim:#6a8f9a; --ghost:#2c4a55;
+  --ng-green:#008751; --ng-white:#ffffff;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--void);}
+body{font-family:'Karla',sans-serif;color:var(--text);cursor:crosshair;}
+
+/* Scanline CRT */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,0.55) 100%);pointer-events:none;z-index:9998;}
+
+/* ══════════ BOOT SCREEN ══════════ */
+#bootScreen{position:fixed;inset:0;background:var(--void);z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;}
+.boot-emblem{width:120px;height:120px;position:relative;}
+.e-ring{position:absolute;inset:0;border-radius:50%;border:2px solid;animation:ering 2s ease-in-out infinite;}
+.e-ring:nth-child(1){border-color:var(--amber);}
+.e-ring:nth-child(2){border-color:rgba(232,160,32,0.3);animation-delay:.35s;transform:scale(.7);}
+.e-ring:nth-child(3){border-color:rgba(232,160,32,0.1);animation-delay:.7s;transform:scale(.42);}
+@keyframes ering{0%,100%{opacity:1;}50%{opacity:.25;}}
+.e-core{position:absolute;inset:30%;background:var(--amber);border-radius:50%;box-shadow:0 0 30px var(--amber),0 0 70px rgba(232,160,32,0.35);animation:ecore 1.6s ease-in-out infinite;}
+@keyframes ecore{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
+.boot-flag{font-size:38px;line-height:1;}
+.boot-brand{text-align:center;}
+.boot-name{font-family:'Bebas Neue',sans-serif;font-size:58px;letter-spacing:.2em;color:var(--amber);text-shadow:0 0 50px rgba(232,160,32,0.6);line-height:1;}
+.boot-tagline{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.22em;margin-top:5px;}
+.boot-log{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green2);width:460px;display:flex;flex-direction:column;gap:4px;min-height:110px;}
+.b-line{opacity:0;animation:bline .22s ease forwards;}
+@keyframes bline{to{opacity:1;}}
+.boot-bar-wrap{width:460px;height:2px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.boot-bar{height:100%;background:linear-gradient(90deg,var(--amber2),var(--amber),var(--amber3));width:0%;transition:width .06s linear;box-shadow:0 0 12px var(--amber);}
+.boot-version{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ghost);letter-spacing:.15em;}
+
+/* ══════════ APP LAYOUT ══════════ */
+#app{display:flex;height:100vh;opacity:0;transition:opacity .8s ease;}
+#app.visible{opacity:1;}
+
+/* RAIL */
+.rail{width:244px;min-width:244px;background:var(--deep);border-right:1px solid var(--rim);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.rail::after{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,transparent,var(--amber),transparent);opacity:.3;}
+
+.rail-head{padding:20px 18px 15px;border-bottom:1px solid var(--rim);}
+.rail-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rail-flag{font-size:20px;}
+.rail-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.16em;color:var(--amber);text-shadow:0 0 18px rgba(232,160,32,0.35);line-height:1;}
+.rail-tagline{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.16em;line-height:1.6;}
+.rail-status{display:flex;align-items:center;gap:6px;margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green2);}
+.s-dot{width:7px;height:7px;background:var(--green2);border-radius:50%;box-shadow:0 0 8px var(--green2);animation:sdot 2s ease-in-out infinite;}
+@keyframes sdot{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.nav-sec{padding:10px 10px 4px;}
+.nav-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ghost);letter-spacing:.2em;padding:0 8px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:3px;cursor:pointer;font-size:12px;color:var(--dim);transition:all .15s;margin-bottom:1px;border-left:2px solid transparent;user-select:none;}
+.nav-item:hover{background:var(--raised);color:var(--text);}
+.nav-item.active{background:rgba(232,160,32,.07);color:var(--amber);border-left-color:var(--amber);}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(232,160,32,.1);color:var(--amber);border:1px solid rgba(232,160,32,.2);}
+
+/* Nigerian flag stripe accent on rail bottom */
+.rail-ng-stripe{height:3px;background:linear-gradient(90deg,var(--ng-green) 33%,var(--ng-white) 33%,var(--ng-white) 66%,var(--ng-green) 66%);opacity:.4;flex-shrink:0;}
+
+.live-feed{flex:1;border-top:1px solid var(--rim);padding:12px 14px;overflow:hidden;}
+.feed-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.18em;margin-bottom:8px;}
+.feed-item{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--ghost);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.02);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:fedin .4s ease;}
+@keyframes fedin{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:none;}}
+.feed-item span{color:var(--amber3);}
+
+/* ══════════ MAIN ══════════ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--void);}
+.topbar{height:50px;background:var(--deep);border-bottom:1px solid var(--rim);display:flex;align-items:center;padding:0 22px;gap:13px;flex-shrink:0;}
+.topbar-brand{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.14em;color:var(--amber);opacity:.6;}
+.topbar-sep{color:var(--ghost);font-size:12px;}
+.topbar-crumb{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);}
+.topbar-crumb span{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.topbar-clock{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);}
+.t-tag{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;letter-spacing:.08em;}
+.tag-conf{background:rgba(214,59,47,.1);color:var(--red2);border:1px solid rgba(214,59,47,.2);}
+.tag-live{background:rgba(13,155,62,.08);color:var(--green2);border:1px solid rgba(13,155,62,.18);}
+.tag-ng{background:rgba(0,135,81,.1);color:#2ecc71;border:1px solid rgba(0,135,81,.25);}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden;}
+.panel.active{display:flex;flex-direction:column;}
+
+/* ══════════ SEARCH PANEL ══════════ */
+.spanel{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px;display:flex;flex-direction:column;gap:18px;}
+.spanel::-webkit-scrollbar{width:3px;}
+.spanel::-webkit-scrollbar-thumb{background:var(--rim);}
+
+/* CMD BAR */
+.cmd-bar{background:var(--deep);border:1px solid var(--rim);border-top:2px solid var(--amber);border-radius:2px;padding:18px 20px;position:relative;overflow:hidden;}
+.cmd-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:34px;background:linear-gradient(180deg,rgba(232,160,32,.04),transparent);pointer-events:none;}
+.cmd-row{display:flex;gap:9px;align-items:stretch;}
+.type-sw{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.type-btn{padding:7px 12px;background:var(--raised);border:1px solid var(--rim);border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--dim);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
+.type-btn:hover{color:var(--text);border-color:var(--wire);}
+.type-btn.active{background:rgba(232,160,32,.08);border-color:var(--amber);border-left-color:var(--amber);color:var(--amber);}
+.cmd-wrap{flex:1;position:relative;}
+.cmd-prompt{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--amber);pointer-events:none;}
+.cmd-input{width:100%;height:100%;background:var(--raised);border:1px solid var(--rim);border-radius:2px;padding:12px 14px 12px 32px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;letter-spacing:.03em;}
+.cmd-input:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(232,160,32,.07);}
+.cmd-input::placeholder{color:var(--ghost);}
+.cmd-exec{background:var(--amber);color:var(--void);border:none;border-radius:2px;padding:0 22px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;cursor:pointer;transition:all .2s;flex-shrink:0;display:flex;align-items:center;}
+.cmd-exec:hover{background:var(--amber3);box-shadow:0 4px 22px rgba(232,160,32,.4);}
+.cmd-exec:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.quick-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;align-items:center;}
+.qs-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.14em;}
+.qs-tag{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--rim);border-radius:2px;cursor:pointer;color:var(--dim);background:var(--raised);transition:all .15s;}
+.qs-tag:hover{border-color:var(--amber);color:var(--amber);background:rgba(232,160,32,.04);}
+
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.kpi{background:var(--deep);border:1px solid var(--rim);border-radius:2px;padding:13px 15px;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;}
+.kpi.a::after{background:var(--amber);}
+.kpi.g::after{background:var(--green2);}
+.kpi.r::after{background:var(--red2);}
+.kpi.i::after{background:var(--ice);}
+.kpi-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.12em;margin-bottom:6px;}
+.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;}
+.kpi.a .kpi-val{color:var(--amber);}
+.kpi.g .kpi-val{color:var(--green2);}
+.kpi.r .kpi-val{color:var(--red2);}
+.kpi.i .kpi-val{color:var(--ice);}
+.kpi-sub{font-size:10px;color:var(--ghost);margin-top:2px;}
+
+/* MAP THEATER */
+#mapTheater{display:none;background:var(--deep);border:1px solid var(--rim);border-radius:2px;overflow:hidden;position:relative;height:400px;}
+#mapTheater.active{display:block;}
+#globeCanvas{position:absolute;inset:0;width:100%;height:100%;}
+#mapEmbed{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.1s ease;border:none;}
+#mapEmbed.visible{opacity:1;}
+.map-scan{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);animation:mscan 3.2s linear infinite;opacity:.45;z-index:5;pointer-events:none;}
+@keyframes mscan{0%{top:0;}100%{top:100%;}}
+.map-hud{position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:5px;z-index:10;pointer-events:none;}
+.hud{font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 10px;background:rgba(4,8,10,.9);border:1px solid var(--rim);border-left:2px solid var(--amber);border-radius:2px;color:var(--amber);letter-spacing:.05em;}
+.hud.g{border-left-color:var(--green2);color:var(--green2);}
+.hud.i{border-left-color:var(--ice);color:var(--ice);}
+.map-radar{position:absolute;bottom:14px;right:14px;width:74px;height:74px;z-index:10;pointer-events:none;}
+.rc{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(232,160,32,.22);}
+.rc:nth-child(2){inset:22%;}
+.rc:nth-child(3){inset:44%;border-color:rgba(232,160,32,.45);}
+.rsweep{position:absolute;top:50%;left:50%;width:50%;height:1px;transform-origin:0 50%;background:linear-gradient(90deg,var(--amber),transparent);animation:rspin 2s linear infinite;}
+@keyframes rspin{to{transform:rotate(360deg);}}
+.rblip{position:absolute;width:5px;height:5px;background:var(--red2);border-radius:50%;box-shadow:0 0 7px var(--red2);animation:rblip 1.1s ease-in-out infinite;}
+@keyframes rblip{0%,100%{opacity:1;}50%{opacity:.1;}}
+.map-brand-hud{position:absolute;top:14px;right:14px;font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(232,160,32,.25);letter-spacing:.18em;pointer-events:none;z-index:10;}
+
+/* LOADING */
+#loadingLayer{display:none;flex-direction:column;align-items:center;justify-content:center;padding:65px 20px;gap:18px;}
+#loadingLayer.on{display:flex;}
+.spin{width:46px;height:46px;border:2px solid var(--rim);border-top-color:var(--amber);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.load-lbl{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--amber);letter-spacing:.1em;}
+.load-step{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);}
+
+/* EMPTY */
+#emptyState{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:65px 20px;gap:13px;text-align:center;}
+.e-glyph{font-size:54px;opacity:.1;filter:grayscale(1);}
+.e-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.14em;color:var(--fog);}
+.e-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--ghost);max-width:360px;line-height:1.9;letter-spacing:.05em;}
+#resultsWrap{display:none;}
+
+/* RESULTS GRID */
+.rg{display:flex;gap:16px;}
+.rc-main{flex:1;display:flex;flex-direction:column;gap:13px;}
+.rc-side{width:268px;display:flex;flex-direction:column;gap:13px;}
+
+/* CARDS */
+.icard{background:var(--deep);border:1px solid var(--rim);border-radius:2px;overflow:hidden;}
+.icard-head{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--rim);background:rgba(255,255,255,.01);}
+.icard-icon{font-size:13px;flex-shrink:0;}
+.icard-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.08em;color:var(--text);flex:1;}
+.ibadge{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 7px;border-radius:2px;letter-spacing:.07em;}
+.b-ok{background:rgba(13,155,62,.1);color:var(--green2);border:1px solid rgba(13,155,62,.2);}
+.b-warn{background:rgba(232,160,32,.08);color:var(--amber);border:1px solid rgba(232,160,32,.18);}
+.b-risk{background:rgba(214,59,47,.1);color:var(--red2);border:1px solid rgba(214,59,47,.22);}
+.icard-body{padding:14px;}
+
+/* FIELDS */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fi{display:flex;flex-direction:column;gap:2px;}
+.fl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.1em;}
+.fv{font-size:12px;color:var(--text);}
+.fv.mono{font-family:'Share Tech Mono',monospace;color:var(--amber);font-size:11px;}
+
+/* DIRECTORS */
+.dl{display:flex;flex-direction:column;gap:6px;}
+.dr{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--raised);border:1px solid var(--rim);border-left:2px solid var(--ghost);border-radius:2px;cursor:pointer;transition:all .15s;}
+.dr:hover{border-left-color:var(--amber);background:rgba(232,160,32,.04);}
+.di{width:28px;height:28px;background:var(--lifted);border:1px solid var(--wire);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--amber);flex-shrink:0;}
+.dn{font-size:12px;flex:1;}
+.drl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+
+/* GAUGES */
+.gs{display:flex;flex-direction:column;gap:12px;}
+.gauge{display:flex;flex-direction:column;gap:4px;}
+.gt{display:flex;justify-content:space-between;align-items:baseline;}
+.gn{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.08em;}
+.gv{font-family:'Bebas Neue',sans-serif;font-size:19px;}
+.gtrack{height:3px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.gfill{height:100%;border-radius:1px;transition:width 1s cubic-bezier(.23,1,.32,1);}
+.gauge.leg .gv{color:var(--green2);}
+.gauge.leg .gfill{background:linear-gradient(90deg,var(--green),var(--green2));}
+.gauge.rsk .gv{color:var(--red2);}
+.gauge.rsk .gfill{background:linear-gradient(90deg,var(--red),var(--red2));}
+.gauge.inf .gv{color:var(--ice);}
+.gauge.inf .gfill{background:linear-gradient(90deg,var(--fog),var(--ice));}
+
+.vbar{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:2px;margin-top:9px;}
+.v-low{background:rgba(13,155,62,.06);border:1px solid rgba(13,155,62,.18);}
+.v-med{background:rgba(232,160,32,.05);border:1px solid rgba(232,160,32,.18);}
+.v-high{background:rgba(214,59,47,.06);border:1px solid rgba(214,59,47,.2);}
+.vdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.v-low .vdot{background:var(--green2);box-shadow:0 0 7px var(--green2);}
+.v-med .vdot{background:var(--amber);box-shadow:0 0 7px var(--amber);}
+.v-high .vdot{background:var(--red2);box-shadow:0 0 7px var(--red2);animation:sdot 1.2s ease-in-out infinite;}
+.vlbl{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.1em;}
+.v-low .vlbl{color:var(--green2);}
+.v-med .vlbl{color:var(--amber);}
+.v-high .vlbl{color:var(--red2);}
+.vconf{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+
+/* MEDIA */
+.ms{display:flex;flex-direction:column;gap:8px;}
+.mr{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;background:var(--raised);border-radius:2px;border-left:2px solid var(--ghost);}
+.mr.pos{border-left-color:var(--green2);}
+.mr.neg{border-left-color:var(--red2);}
+.mr.neu{border-left-color:var(--fog);}
+.mi{font-size:13px;flex-shrink:0;padding-top:1px;}
+.mh{font-size:11px;color:var(--text);line-height:1.5;margin-bottom:2px;}
+.mm{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+
+/* FLAGS */
+.fr{display:flex;flex-wrap:wrap;gap:5px;}
+.flag{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 9px;border-radius:2px;letter-spacing:.08em;display:flex;align-items:center;gap:4px;}
+.fp{background:rgba(77,216,232,.07);color:var(--ice);border:1px solid rgba(77,216,232,.18);}
+.fe{background:rgba(214,59,47,.08);color:var(--red2);border:1px solid rgba(214,59,47,.18);}
+.ff{background:rgba(232,160,32,.07);color:var(--amber);border:1px solid rgba(232,160,32,.18);}
+.fc{background:rgba(13,155,62,.07);color:var(--green2);border:1px solid rgba(13,155,62,.18);font-size:10px;}
+
+/* NETWORK */
+#netContainer{height:300px;background:var(--raised);position:relative;overflow:hidden;}
+#netSvg{width:100%;height:100%;}
+.net-leg{position:absolute;bottom:9px;left:9px;background:rgba(4,8,10,.9);border:1px solid var(--rim);border-radius:2px;padding:7px 9px;display:flex;flex-direction:column;gap:4px;}
+.nl-item{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+.nl-dot{width:6px;height:6px;border-radius:50%;}
+
+/* SHAREHOLDERS */
+.hl{display:flex;flex-direction:column;gap:10px;}
+.ht{display:flex;justify-content:space-between;margin-bottom:3px;}
+.hn{font-size:11px;color:var(--text);}
+.hp{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);}
+.hbt{height:2px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.hbf{height:100%;background:linear-gradient(90deg,var(--amber2),var(--amber));border-radius:1px;}
+
+/* ══════════ CHAT PANEL ══════════ */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.chat-log{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:15px;}
+.chat-log::-webkit-scrollbar{width:3px;}
+.chat-log::-webkit-scrollbar-thumb{background:var(--rim);}
+.msg{display:flex;gap:10px;max-width:82%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg-av{width:30px;height:30px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.msg.user .msg-av{background:var(--amber);color:var(--void);font-family:'Bebas Neue',sans-serif;font-size:16px;}
+.msg.bot .msg-av{background:var(--raised);border:1px solid var(--rim);font-size:14px;}
+.msg-bubble{padding:11px 14px;border-radius:2px;font-size:12px;line-height:1.75;}
+.msg.user .msg-bubble{background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.18);border-bottom-right-radius:0;}
+.msg.bot .msg-bubble{background:var(--deep);border:1px solid var(--rim);border-bottom-left-radius:0;color:var(--text);}
+.msg-bubble h3{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.08em;color:var(--amber);margin:10px 0 4px;}
+.msg-bubble h3:first-child{margin-top:0;}
+.msg-bubble strong{color:var(--amber3);font-weight:600;}
+.msg-bubble ul{padding-left:14px;margin:4px 0;}
+.msg-bubble li{margin-bottom:2px;}
+.msg-time{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ghost);margin-top:4px;}
+.typing{display:flex;gap:4px;padding:3px 0;align-items:center;}
+.td{width:5px;height:5px;background:var(--dim);border-radius:50%;animation:tdot 1.2s ease-in-out infinite;}
+.td:nth-child(2){animation-delay:.2s;}
+.td:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.3;}30%{transform:translateY(-5px);opacity:1;}}
+
+.chat-bar{border-top:1px solid var(--rim);background:var(--deep);padding:12px 22px 18px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
+.chip{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 9px;background:var(--raised);border:1px solid var(--rim);border-radius:2px;color:var(--dim);cursor:pointer;transition:all .15s;letter-spacing:.05em;}
+.chip:hover{border-color:var(--amber);color:var(--amber);}
+.chat-row{display:flex;gap:9px;align-items:flex-end;}
+.chat-ta{flex:1;background:var(--raised);border:1px solid var(--rim);border-radius:2px;padding:9px 13px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;resize:none;max-height:100px;outline:none;transition:border-color .2s;line-height:1.5;}
+.chat-ta:focus{border-color:var(--amber);}
+.chat-ta::placeholder{color:var(--ghost);}
+.chat-send{background:var(--amber);border:none;border-radius:2px;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--void);transition:all .2s;flex-shrink:0;}
+.chat-send:hover{background:var(--amber3);box-shadow:0 4px 14px rgba(232,160,32,.4);}
+.chat-send:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;}
+
+/* TOOLTIP */
+#gTip{position:fixed;background:var(--deep);border:1px solid var(--wire);border-radius:2px;padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);pointer-events:none;z-index:2000;display:none;}
+.fade-in{animation:fin .3s ease;}
+@keyframes fin{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+
+/* note box */
+.note-box{padding:7px 11px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:9px;}
+.note-amber{background:rgba(232,160,32,.04);border:1px solid rgba(232,160,32,.14);color:var(--amber);margin-top:9px;}
+.note-ice{background:rgba(77,216,232,.04);border:1px solid rgba(77,216,232,.14);color:var(--ice);margin-top:7px;}
+</style>
+</head>
+<body>
+
+<!-- ══ BOOT SCREEN ══ -->
+<div id="bootScreen">
+  <div class="boot-emblem">
+    <div class="e-ring"></div><div class="e-ring"></div><div class="e-ring"></div>
+    <div class="e-core"></div>
+  </div>
+  <div class="boot-flag">🇳🇬</div>
+  <div class="boot-brand">
+    <div class="boot-name">CHECK AM</div>
+    <div class="boot-tagline">NIGERIA BUSINESS INTELLIGENCE PLATFORM</div>
+  </div>
+  <div class="boot-log" id="bootLog"></div>
+  <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+  <div class="boot-version">v1.0 · FOR INTERNAL USE ONLY</div>
+</div>
+
+<div id="gTip"></div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- RAIL -->
+  <aside class="rail">
+    <div class="rail-head">
+      <div class="rail-logo-row">
+        <div class="rail-flag">🇳🇬</div>
+        <div class="rail-name">CHECK AM</div>
+      </div>
+      <div class="rail-tagline">NIGERIA BUSINESS INTELLIGENCE<br>& DUE DILIGENCE PLATFORM</div>
+      <div class="rail-status"><div class="s-dot"></div><span>SYSTEM OPERATIONAL</span></div>
+    </div>
+
+    <div class="nav-sec">
+      <div class="nav-lbl">OPERATIONS</div>
+      <div class="nav-item active" onclick="switchPanel('search')" id="nav-search">
+        <span class="nav-icon">🔍</span> Entity Search
+      </div>
+      <div class="nav-item" onclick="switchPanel('chat')" id="nav-chat">
+        <span class="nav-icon">⬡</span> Intelligence Chat<span class="nav-badge">AI</span>
+      </div>
+    </div>
+
+    <div class="nav-sec">
+      <div class="nav-lbl">MODULES</div>
+      <div class="nav-item" onclick="switchPanel('search')"><span class="nav-icon">🏢</span> Corporate Registry</div>
+      <div class="nav-item" onclick="switchPanel('search')"><span class="nav-icon">👤</span> Individual Profiling</div>
+      <div class="nav-item" onclick="switchPanel('search')"><span class="nav-icon">🕸</span> Network Mapping</div>
+      <div class="nav-item" onclick="switchPanel('search')"><span class="nav-icon">📡</span> Media Monitoring</div>
+      <div class="nav-item" onclick="switchPanel('search')"><span class="nav-icon">📍</span> Geolocation Intel</div>
+    </div>
+
+    <div class="live-feed">
+      <div class="feed-title">LIVE QUERY FEED</div>
+      <div id="liveFeed"></div>
+    </div>
+
+    <div class="rail-ng-stripe"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-brand">CHECK AM</div>
+      <div class="topbar-sep">›</div>
+      <div class="topbar-crumb"><span id="crumbSection">Entity Search</span></div>
+      <div class="topbar-right">
+        <div class="topbar-clock" id="clock">--:--:--</div>
+        <div class="t-tag tag-ng">🇳🇬 NIGERIA</div>
+        <div class="t-tag tag-conf">CONFIDENTIAL</div>
+        <div class="t-tag tag-live">● LIVE</div>
+      </div>
+    </div>
+
+    <!-- SEARCH PANEL -->
+    <div class="panel active" id="panel-search">
+      <div class="spanel" id="spanel">
+
+        <!-- CMD BAR -->
+        <div class="cmd-bar fade-in">
+          <div class="cmd-row">
+            <div class="type-sw">
+              <button class="type-btn active" id="typeCo" onclick="setType('company')">🏢 COMPANY</button>
+              <button class="type-btn" id="typeInd" onclick="setType('individual')">👤 INDIVIDUAL</button>
+            </div>
+            <div class="cmd-wrap">
+              <span class="cmd-prompt">›</span>
+              <input class="cmd-input" id="searchInput"
+                placeholder="Company name, RC number or full name..."
+                onkeydown="if(event.key==='Enter')runSearch()"/>
+            </div>
+            <button class="cmd-exec" id="searchBtn" onclick="runSearch()">CHECK AM</button>
+          </div>
+          <div class="quick-row">
+            <span class="qs-lbl">TRY:</span>
+            <span class="qs-tag" onclick="qs('Dangote Group','company')">Dangote Group</span>
+            <span class="qs-tag" onclick="qs('Access Bank','company')">Access Bank</span>
+            <span class="qs-tag" onclick="qs('Shell Nigeria','company')">Shell Nigeria</span>
+            <span class="qs-tag" onclick="qs('Aliko Dangote','individual')">Aliko Dangote</span>
+            <span class="qs-tag" onclick="qs('Emeka Obi','individual')">Emeka Obi</span>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-row fade-in">
+          <div class="kpi a"><div class="kpi-lbl">CHECKS THIS SESSION</div><div class="kpi-val" id="kpi1">0</div><div class="kpi-sub">Intelligence queries</div></div>
+          <div class="kpi g"><div class="kpi-lbl">ENTITIES CLEARED</div><div class="kpi-val" id="kpi2">0</div><div class="kpi-sub">Low-risk verdicts</div></div>
+          <div class="kpi r"><div class="kpi-lbl">HIGH RISK FLAGS</div><div class="kpi-val" id="kpi3">0</div><div class="kpi-sub">Flagged entities</div></div>
+          <div class="kpi i"><div class="kpi-lbl">NETWORKS MAPPED</div><div class="kpi-val" id="kpi4">0</div><div class="kpi-sub">Graph analyses</div></div>
+        </div>
+
+        <!-- MAP THEATER -->
+        <div id="mapTheater">
+          <canvas id="globeCanvas"></canvas>
+          <iframe id="mapEmbed" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="map-scan"></div>
+          <div class="map-hud" id="mapHud">
+            <div class="hud" id="hudStatus">GEOLOCATION SCAN INITIALISING...</div>
+            <div class="hud g" id="hudCoords">LAT: — · LNG: —</div>
+            <div class="hud i" id="hudAddr">ADDRESS: SCANNING...</div>
+          </div>
+          <div class="map-radar">
+            <div class="rc"></div><div class="rc"></div><div class="rc"></div>
+            <div class="rsweep"></div>
+            <div class="rblip" style="top:26%;left:60%;"></div>
+          </div>
+          <div class="map-brand-hud">NIGERIA</div>
+        </div>
+
+        <!-- LOADING -->
+        <div id="loadingLayer">
+          <div class="spin"></div>
+          <div class="load-lbl">CHECK AM IS ANALYSING...</div>
+          <div class="load-step" id="loadStep">Initialising modules...</div>
+        </div>
+
+        <!-- EMPTY -->
+        <div id="emptyState">
+          <div class="e-glyph">🇳🇬</div>
+          <div class="e-title">READY TO CHECK AM</div>
+          <div class="e-sub">ENTER A COMPANY NAME, RC NUMBER OR INDIVIDUAL'S FULL NAME TO BEGIN INTELLIGENCE ANALYSIS</div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="resultsWrap">
+          <div class="rg">
+            <div class="rc-main">
+
+              <!-- Profile -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon" id="profIcon">🏢</span>
+                  <span class="icard-title" id="profTitle">CORPORATE PROFILE</span>
+                  <span class="ibadge b-ok" id="profBadge">ACTIVE</span>
+                </div>
+                <div class="icard-body" id="profBody"></div>
+              </div>
+
+              <!-- Directors -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon">👥</span>
+                  <span class="icard-title" id="dirTitle">DIRECTORS & OFFICERS</span>
+                </div>
+                <div class="icard-body"><div class="dl" id="dirList"></div></div>
+              </div>
+
+              <!-- Network -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon">🕸</span>
+                  <span class="icard-title">BUSINESS NETWORK MAP</span>
+                  <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)" id="netStat">—</span>
+                </div>
+                <div class="icard-body" style="padding:0;">
+                  <div id="netContainer">
+                    <svg id="netSvg"></svg>
+                    <div class="net-leg">
+                      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-bottom:2px;letter-spacing:.1em;">LEGEND</div>
+                      <div class="nl-item"><div class="nl-dot" style="background:var(--amber)"></div>COMPANY</div>
+                      <div class="nl-item"><div class="nl-dot" style="background:var(--green2)"></div>INDIVIDUAL</div>
+                      <div class="nl-item"><div class="nl-dot" style="background:var(--ice)"></div>SUBSIDIARY</div>
+                      <div class="nl-item"><div class="nl-dot" style="background:var(--red2)"></div>FOREIGN</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Media -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon">📡</span>
+                  <span class="icard-title">MEDIA INTELLIGENCE</span>
+                  <span class="ibadge" id="mediaBadge" style="display:none;"></span>
+                </div>
+                <div class="icard-body"><div class="ms" id="mediaStack"></div></div>
+              </div>
+
+            </div>
+
+            <!-- SIDE -->
+            <div class="rc-side">
+
+              <!-- Risk -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon">⚡</span>
+                  <span class="icard-title">RISK ASSESSMENT</span>
+                </div>
+                <div class="icard-body">
+                  <div class="gs">
+                    <div class="gauge leg"><div class="gt"><span class="gn">LEGITIMACY</span><span class="gv" id="gL">—</span></div><div class="gtrack"><div class="gfill" id="gLF" style="width:0%"></div></div></div>
+                    <div class="gauge rsk"><div class="gt"><span class="gn">RISK EXPOSURE</span><span class="gv" id="gR">—</span></div><div class="gtrack"><div class="gfill" id="gRF" style="width:0%"></div></div></div>
+                    <div class="gauge inf"><div class="gt"><span class="gn">INFLUENCE</span><span class="gv" id="gI">—</span></div><div class="gtrack"><div class="gfill" id="gIF" style="width:0%"></div></div></div>
+                  </div>
+                  <div id="vbar" class="vbar" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Flags -->
+              <div class="icard fade-in">
+                <div class="icard-head">
+                  <span class="icard-icon">🚩</span>
+                  <span class="icard-title">INTELLIGENCE FLAGS</span>
+                </div>
+                <div class="icard-body">
+                  <div class="fr" id="flagRack"></div>
+                  <div id="flagClear" class="flag fc" style="display:none;">✓ NO RISK FLAGS DETECTED</div>
+                </div>
+              </div>
+
+              <!-- Summary -->
+              <div class="icard fade-in" id="summaryCard" style="display:none;">
+                <div class="icard-head">
+                  <span class="icard-icon">📋</span>
+                  <span class="icard-title">ANALYSIS SUMMARY</span>
+                </div>
+                <div class="icard-body">
+                  <div id="summaryText" style="font-size:11px;color:var(--dim);line-height:1.85;"></div>
+                </div>
+              </div>
+
+              <!-- Shareholders -->
+              <div class="icard fade-in" id="holdCard" style="display:none;">
+                <div class="icard-head">
+                  <span class="icard-icon">📊</span>
+                  <span class="icard-title">SHAREHOLDING</span>
+                </div>
+                <div class="icard-body"><div class="hl" id="holdList"></div></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div class="panel" id="panel-chat">
+      <div class="chat-wrap">
+        <div class="chat-log" id="chatLog">
+          <div class="msg bot fade-in">
+            <div class="msg-av">🔍</div>
+            <div>
+              <div class="msg-bubble">
+                <strong>Check Am Intelligence System online.</strong><br><br>
+                I'm your Nigeria Business Intelligence analyst. Ask me to check any Nigerian company or individual — I'll run a full intelligence analysis and tell you everything you need to know before you do business with them.<br><br>
+                <strong>I can check:</strong>
+                <ul>
+                  <li>Corporate registration &amp; RC number verification</li>
+                  <li>Director &amp; shareholder structures</li>
+                  <li>Regulatory &amp; enforcement exposure</li>
+                  <li>Business network connections</li>
+                  <li>Media &amp; reputation history</li>
+                  <li>Risk scoring &amp; red flags</li>
+                </ul>
+                <br>Who do you want me to check?
+              </div>
+              <div class="msg-time">CHECK AM · READY</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-bar">
+          <div class="chips">
+            <span class="chip" onclick="sendChip(this)">CHECK DANGOTE GROUP</span>
+            <span class="chip" onclick="sendChip(this)">CHECK EMEKA OBI</span>
+            <span class="chip" onclick="sendChip(this)">WHO OWNS ACCESS BANK?</span>
+            <span class="chip" onclick="sendChip(this)">SHELL NIGERIA RISK PROFILE</span>
+          </div>
+          <div class="chat-row">
+            <textarea class="chat-ta" id="chatInput" rows="1"
+              placeholder="Who do you want to check?"
+              onkeydown="onChatKey(event)"
+              oninput="autoGrow(this)"></textarea>
+            <button class="chat-send" id="chatSend" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  BOOT SEQUENCE
+// ══════════════════════════════════════════════════
+const BOOT_LINES = [
+  '> INITIALISING CHECK AM CORE SYSTEMS...',
+  '> LOADING CORPORATE REGISTRY MODULE... OK',
+  '> LOADING INDIVIDUAL INTELLIGENCE MODULE... OK',
+  '> LOADING NETWORK GRAPH ENGINE... OK',
+  '> LOADING MEDIA MONITORING SYSTEM... OK',
+  '> LOADING GEOLOCATION INTELLIGENCE... OK',
+  '> CONNECTING TO INTELLIGENCE BACKEND... OK',
+  '> SECURITY PROTOCOLS ACTIVE',
+  '> CHECK AM IS READY — LET\'S CHECK AM',
+];
+
+async function runBoot() {
+  const log = document.getElementById('bootLog');
+  const bar = document.getElementById('bootBar');
+  for (let i = 0; i < BOOT_LINES.length; i++) {
+    await sleep(230);
+    const d = document.createElement('div');
+    d.className = 'b-line';
+    d.textContent = BOOT_LINES[i];
+    log.appendChild(d);
+    bar.style.width = ((i + 1) / BOOT_LINES.length * 100) + '%';
+  }
+  await sleep(520);
+  const bs = document.getElementById('bootScreen');
+  bs.style.transition = 'opacity .6s ease';
+  bs.style.opacity = '0';
+  await sleep(620);
+  bs.style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  startClock();
+  startLiveFeed();
+}
+runBoot();
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ══════════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════════
+function startClock() {
+  const el = document.getElementById('clock');
+  setInterval(() => {
+    el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WAT';
+  }, 1000);
+}
+
+// ══════════════════════════════════════════════════
+//  LIVE FEED
+// ══════════════════════════════════════════════════
+const FEED = [
+  ['QUERY', 'Dangote Industries Ltd'],
+  ['SCAN', 'RC-125384 · Access Bank'],
+  ['FLAG', 'PEP link detected · Abuja'],
+  ['QUERY', 'Zenith Contracting Ltd'],
+  ['CLEAR', 'Shell Nigeria — verified'],
+  ['ALERT', 'Shared director detected'],
+  ['QUERY', 'Lagos Properties Ltd'],
+  ['SCAN', 'Media scan · 12 results'],
+  ['CHECK', 'Aliko Dangote — complete'],
+  ['FLAG', 'EFCC record · Emeka Obi'],
+];
+function startLiveFeed() {
+  const el = document.getElementById('liveFeed');
+  let i = 0;
+  const push = () => {
+    const it = FEED[i++ % FEED.length];
+    const d = document.createElement('div');
+    d.className = 'feed-item';
+    d.innerHTML = `<span>${it[0]}</span> ${it[1]}`;
+    el.insertBefore(d, el.firstChild);
+    if (el.children.length > 6) el.removeChild(el.lastChild);
+  };
+  push();
+  setInterval(push, 3000);
+}
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let currentType = 'company';
+let chatHistory = [];
+let stats = { queries: 0, cleared: 0, flagged: 0, networks: 0 };
+
+// ══════════════════════════════════════════════════
+//  PANELS
+// ══════════════════════════════════════════════════
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  document.getElementById('crumbSection').textContent =
+    name === 'search' ? 'Entity Search' : 'Intelligence Chat';
+}
+
+function setType(t) {
+  currentType = t;
+  document.getElementById('typeCo').classList.toggle('active', t === 'company');
+  document.getElementById('typeInd').classList.toggle('active', t === 'individual');
+}
+
+function qs(name, type) {
+  setType(type);
+  document.getElementById('searchInput').value = name;
+  runSearch();
+}
+
+// ══════════════════════════════════════════════════
+//  3D GLOBE THEATER
+// ══════════════════════════════════════════════════
+let globeRenderer = null, globeAnimId = null;
+
+function startGlobeTheater(address, lat, lng) {
+  const theater = document.getElementById('mapTheater');
+  theater.classList.add('active');
+  theater.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const canvas = document.getElementById('globeCanvas');
+  const W = theater.clientWidth || 700, H = 400;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 1000);
+  camera.position.z = 2.9;
+
+  if (globeRenderer) globeRenderer.dispose();
+  globeRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  globeRenderer.setSize(W, H);
+  globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Stars
+  const sg = new THREE.BufferGeometry();
+  const sv = [];
+  for (let i = 0; i < 2600; i++)
+    sv.push((Math.random() - .5) * 220, (Math.random() - .5) * 220, (Math.random() - .5) * 220);
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+  scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x3a6070, size: 0.11 })));
+
+  // Globe body
+  const geo = new THREE.SphereGeometry(1, 56, 56);
+  const globe = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: 0x071820, emissive: 0x030d12, transparent: true, opacity: 0.97
+  }));
+  scene.add(globe);
+  scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    color: 0x1a3a4a, wireframe: true, transparent: true, opacity: 0.26
+  })));
+
+  // Nigeria pin
+  const niLat = 9.08, niLng = 8.67;
+  const pp = ll2v(niLat, niLng, 1.02);
+  const pin = new THREE.Mesh(
+    new THREE.SphereGeometry(0.03, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xe8a020 })
+  );
+  pin.position.set(pp.x, pp.y, pp.z);
+
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.036, 0.062, 32),
+    new THREE.MeshBasicMaterial({ color: 0xe8a020, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+  );
+  ring.position.set(pp.x, pp.y, pp.z);
+  ring.lookAt(0, 0, 0);
+
+  globe.add(pin);
+  globe.add(ring);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x1a3040, 2.2));
+  const dl = new THREE.DirectionalLight(0xe8a020, 0.9);
+  dl.position.set(5, 3, 4);
+  scene.add(dl);
+
+  // Orient toward Nigeria
+  const tY = (niLng / 180) * Math.PI;
+  const tX = -(niLat / 180) * Math.PI;
+  globe.rotation.y = tY - Math.PI;
+  globe.rotation.x = tX;
+
+  let frame = 0;
+  const SPIN = 130, ZOOM = 65;
+
+  cancelAnimationFrame(globeAnimId);
+
+  function animate() {
+    globeAnimId = requestAnimationFrame(animate);
+    frame++;
+    if (frame < SPIN) {
+      const t = frame / SPIN, ease = 1 - Math.pow(1 - t, 3);
+      globe.rotation.y = (tY - Math.PI) + ease * Math.PI * 2;
+      camera.position.z = 2.9;
+    } else if (frame < SPIN + ZOOM) {
+      const t = (frame - SPIN) / ZOOM, ease = t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      camera.position.z = 2.9 - ease * 1.7;
+      ring.scale.setScalar(1 + Math.sin(frame * .3) * .35);
+      ring.material.opacity = .55 + Math.sin(frame * .3) * .28;
+    } else {
+      cancelAnimationFrame(globeAnimId);
+      let slow = 0;
+      function slowSpin() {
+        globeAnimId = requestAnimationFrame(slowSpin);
+        slow += 0.0018;
+        globe.rotation.y = tY + slow;
+        globeRenderer.render(scene, camera);
+      }
+      showMap(lat, lng, address);
+      slowSpin();
+      return;
+    }
+    globeRenderer.render(scene, camera);
+  }
+  animate();
+}
+
+function ll2v(lat, lng, r) {
+  const phi = (90 - lat) * (Math.PI / 180), theta = (lng + 180) * (Math.PI / 180);
+  return {
+    x: -(r * Math.sin(phi) * Math.cos(theta)),
+    y: r * Math.cos(phi),
+    z: r * Math.sin(phi) * Math.sin(theta),
+  };
+}
+
+function showMap(lat, lng, address) {
+  const iframe = document.getElementById('mapEmbed');
+  const cLat = lat || 9.082, cLng = lng || 8.675;
+  const d = 0.013;
+  iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${cLng-d},${cLat-0.009},${cLng+d},${cLat+0.009}&layer=mapnik&marker=${cLat},${cLng}`;
+  document.getElementById('hudStatus').textContent = 'LOCATION ACQUIRED — PINNED';
+  document.getElementById('hudCoords').textContent = `LAT: ${cLat.toFixed(4)}° N  ·  LNG: ${cLng.toFixed(4)}° E`;
+  document.getElementById('hudAddr').textContent = `ADDR: ${(address || 'NIGERIA').substring(0, 52)}`;
+  setTimeout(() => {
+    iframe.classList.add('visible');
+    const c = document.getElementById('globeCanvas');
+    c.style.transition = 'opacity 1.2s ease';
+    c.style.opacity = '0.1';
+  }, 500);
+}
+
+function resetMapTheater() {
+  const t = document.getElementById('mapTheater');
+  t.classList.remove('active');
+  cancelAnimationFrame(globeAnimId);
+  const iframe = document.getElementById('mapEmbed');
+  iframe.classList.remove('visible');
+  iframe.src = '';
+  const c = document.getElementById('globeCanvas');
+  c.style.opacity = '1';
+  c.style.transition = '';
+}
+
+function getCoords(address, entityName) {
+  const a = (address + ' ' + entityName).toLowerCase();
+  if (a.includes('victoria island') || a.includes(' vi,') || a.includes('vi ')) return { lat: 6.4281, lng: 3.4219 };
+  if (a.includes('ikoyi')) return { lat: 6.4549, lng: 3.4366 };
+  if (a.includes('lekki')) return { lat: 6.4655, lng: 3.5403 };
+  if (a.includes('ikeja')) return { lat: 6.5954, lng: 3.3417 };
+  if (a.includes('marina')) return { lat: 6.4530, lng: 3.3958 };
+  if (a.includes('oniru')) return { lat: 6.4375, lng: 3.4764 };
+  if (a.includes('abuja') || a.includes('fct')) return { lat: 9.0765, lng: 7.3986 };
+  if (a.includes('port harcourt')) return { lat: 4.8156, lng: 7.0498 };
+  if (a.includes('kano')) return { lat: 12.0022, lng: 8.5920 };
+  if (a.includes('enugu')) return { lat: 6.4162, lng: 7.4942 };
+  if (a.includes('ibadan')) return { lat: 7.3775, lng: 3.9470 };
+  return { lat: 6.5244, lng: 3.3792 }; // default Lagos
+}
+
+// ══════════════════════════════════════════════════
+//  LOADING STEPS
+// ══════════════════════════════════════════════════
+const STEPS = [
+  'Querying corporate registry...',
+  'Verifying registration records...',
+  'Running regulatory checks...',
+  'Scanning media archives...',
+  'Building network graph...',
+  'Computing risk scores...',
+  'Geolocating registered address...',
+  'Compiling intelligence report...',
+];
+
+function animSteps() {
+  let i = 0;
+  const el = document.getElementById('loadStep');
+  return setInterval(() => { if (el) el.textContent = STEPS[i++ % STEPS.length]; }, 1100);
+}
+
+// ══════════════════════════════════════════════════
+//  MAIN SEARCH
+// ══════════════════════════════════════════════════
+async function runSearch() {
+  const entity = document.getElementById('searchInput').value.trim();
+  if (!entity) return;
+
+  resetMapTheater();
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsWrap').style.display = 'none';
+  const ll = document.getElementById('loadingLayer');
+  ll.classList.add('on');
+  document.getElementById('searchBtn').disabled = true;
+  const st = animSteps();
+  stats.queries++;
+  updateKpis();
+
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entity, type: currentType }),
+    });
+    const result = await res.json();
+    clearInterval(st);
+    ll.classList.remove('on');
+    if (result.error) {
+      alert('Error: ' + result.error);
+      document.getElementById('emptyState').style.display = 'flex';
+      return;
+    }
+    renderResults(result, entity);
+  } catch (err) {
+    clearInterval(st);
+    ll.classList.remove('on');
+    document.getElementById('emptyState').style.display = 'flex';
+    alert('Request failed: ' + err.message);
+  } finally {
+    document.getElementById('searchBtn').disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER RESULTS
+// ══════════════════════════════════════════════════
+function renderResults(result, entityName) {
+  const { data = {}, text } = result;
+  const company = data.company || {};
+  const individual = data.individual || {};
+  const media = data.media || {};
+  const network = data.network || {};
+  const scores = data.scores || {};
+  const isCompany = currentType === 'company';
+
+  document.getElementById('resultsWrap').style.display = 'block';
+
+  // Profile
+  document.getElementById('profIcon').textContent = isCompany ? '🏢' : '👤';
+  document.getElementById('profTitle').textContent = isCompany ? 'CORPORATE PROFILE' : 'INDIVIDUAL PROFILE';
+  const st = company.status || 'Active';
+  const pb = document.getElementById('profBadge');
+  pb.textContent = st.toUpperCase();
+  pb.className = 'ibadge ' + (st === 'Active' ? 'b-ok' : 'b-risk');
+
+  if (isCompany) {
+    document.getElementById('profBody').innerHTML = `
+      <div class="fg">
+        <div class="fi"><div class="fl">COMPANY NAME</div><div class="fv">${company.name || entityName}</div></div>
+        <div class="fi"><div class="fl">RC NUMBER</div><div class="fv mono">${company.rc_number || '—'}</div></div>
+        <div class="fi"><div class="fl">STATUS</div><div class="fv">${company.status || '—'}</div></div>
+        <div class="fi"><div class="fl">INCORPORATED</div><div class="fv">${company.incorporated || '—'}</div></div>
+        <div class="fi"><div class="fl">ENTITY TYPE</div><div class="fv">${company.type || '—'}</div></div>
+        <div class="fi"><div class="fl">SECTOR</div><div class="fv">${company.sector || '—'}</div></div>
+        <div class="fi" style="grid-column:1/-1;"><div class="fl">REGISTERED ADDRESS</div><div class="fv">${company.address || '—'}</div></div>
+      </div>
+      ${company.note ? `<div class="note-box note-amber">⚠ ${company.note}</div>` : ''}`;
+  } else {
+    document.getElementById('profBody').innerHTML = `
+      <div class="fg">
+        <div class="fi"><div class="fl">FULL NAME</div><div class="fv">${individual.name || entityName}</div></div>
+        <div class="fi"><div class="fl">NATIONALITY</div><div class="fv">${individual.nationality || 'Nigerian'}</div></div>
+        <div class="fi"><div class="fl">COMPANIES LINKED</div><div class="fv mono">${(individual.companies || []).length}</div></div>
+        <div class="fi"><div class="fl">PEP STATUS</div><div class="fv" style="color:${individual.pep_status ? 'var(--red2)' : 'var(--green2)'};">${individual.pep_status ? '⚠ POLITICALLY EXPOSED' : '✓ NOT PEP'}</div></div>
+      </div>
+      ${individual.pep_details ? `<div class="note-box note-ice">🏛 ${individual.pep_details}</div>` : ''}
+      ${individual.note ? `<div class="note-box note-amber">⚠ ${individual.note}</div>` : ''}`;
+  }
+
+  // Directors
+  const dirs = isCompany ? (company.directors || []) : (individual.companies || []);
+  document.getElementById('dirTitle').textContent = isCompany ? 'DIRECTORS & OFFICERS' : 'CORPORATE ASSOCIATIONS';
+  document.getElementById('dirList').innerHTML = dirs.map(d => {
+    const name = isCompany ? d : (d.company || d);
+    const role = isCompany ? 'Director' : (d.role || 'Director');
+    const init = name.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+    return `<div class="dr"><div class="di">${init}</div><div class="dn">${name}</div><div class="drl">${role}${d.rc ? ' · ' + d.rc : ''}</div></div>`;
+  }).join('') || '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--ghost);">NO RECORDS FOUND</div>';
+
+  // Shareholders
+  if ((company.shareholders || []).length) {
+    document.getElementById('holdCard').style.display = 'block';
+    document.getElementById('holdList').innerHTML = company.shareholders.map(s =>
+      `<div><div class="ht"><span class="hn">${s.name}</span><span class="hp">${s.percentage}%</span></div><div class="hbt"><div class="hbf" style="width:${s.percentage}%"></div></div></div>`
+    ).join('');
+  }
+
+  // Network
+  if (network.nodes && network.nodes.length) {
+    document.getElementById('netStat').textContent = `${network.node_count} NODES · ${network.edge_count} EDGES`;
+    renderNetwork(network);
+    stats.networks++;
+  }
+
+  // Media
+  const articles = media.articles || [];
+  if (articles.length) {
+    const mb = document.getElementById('mediaBadge');
+    mb.style.display = 'inline-flex';
+    if (media.negative_count > 1) {
+      mb.textContent = `${media.negative_count} NEGATIVE`;
+      mb.className = 'ibadge b-risk';
+      stats.flagged++;
+    } else {
+      mb.textContent = `${media.sentiment_score}% POSITIVE`;
+      mb.className = 'ibadge b-ok';
+    }
+    document.getElementById('mediaStack').innerHTML = articles.map(a => {
+      const cls = a.sentiment === 'positive' ? 'pos' : a.sentiment === 'negative' ? 'neg' : 'neu';
+      const ico = a.sentiment === 'positive' ? '📈' : a.sentiment === 'negative' ? '⚠️' : '📄';
+      return `<div class="mr ${cls}"><div class="mi">${ico}</div><div><div class="mh">${a.headline}</div><div class="mm">${a.source} · ${a.date}</div></div></div>`;
+    }).join('');
+  }
+
+  // Scores
+  if (scores.legitimacy_score !== undefined) {
+    animScore('gL', 'gLF', scores.legitimacy_score);
+    animScore('gR', 'gRF', scores.risk_score);
+    animScore('gI', 'gIF', scores.influence_score);
+    const vb = document.getElementById('vbar');
+    vb.style.display = 'flex';
+    const r = scores.rating || 'MEDIUM RISK';
+    const cls = r.includes('LOW') ? 'v-low' : r.includes('HIGH') ? 'v-high' : 'v-med';
+    vb.className = 'vbar ' + cls;
+    vb.innerHTML = `<div class="vdot"></div><div class="vlbl">${r}</div><div class="vconf">CONF: ${scores.confidence}</div>`;
+    if (r.includes('LOW')) stats.cleared++;
+    if (r.includes('HIGH')) stats.flagged++;
+  }
+
+  // Flags
+  const flags = [];
+  if (scores.pep_linked) flags.push({ cls: 'fp', t: 'PEP LINKED' });
+  if (scores.foreign_exposure) flags.push({ cls: 'ff', t: 'FOREIGN OWNERSHIP' });
+  if ((individual.regulatory_flags || []).some(f => f.agency === 'EFCC')) flags.push({ cls: 'fe', t: 'EFCC RECORD' });
+  if ((company.foreign_links || []).length > 0) flags.push({ cls: 'ff', t: `${company.foreign_links.length} FOREIGN LINK(S)` });
+  if (scores.sanctions_hit) flags.push({ cls: 'fe', t: 'SANCTIONS HIT' });
+
+  const fr = document.getElementById('flagRack');
+  const fc = document.getElementById('flagClear');
+  if (flags.length) {
+    fr.innerHTML = flags.map(f => `<div class="flag ${f.cls}">${f.t}</div>`).join('');
+    fr.style.display = 'flex';
+    fc.style.display = 'none';
+  } else {
+    fr.style.display = 'none';
+    fc.style.display = 'flex';
+  }
+
+  // Summary
+  if (text) {
+    document.getElementById('summaryCard').style.display = 'block';
+    document.getElementById('summaryText').innerHTML = fmtMd(text.substring(0, 900) + (text.length > 900 ? '...' : ''));
+  }
+
+  // Map
+  const address = company.address || individual.name || entityName;
+  const coords = getCoords(address, entityName);
+  setTimeout(() => startGlobeTheater(address, coords.lat, coords.lng), 300);
+
+  updateKpis();
+}
+
+function animScore(lId, fId, val) {
+  let c = 0; const step = val / 45;
+  const iv = setInterval(() => {
+    c = Math.min(c + step, val);
+    document.getElementById(lId).textContent = Math.round(c);
+    document.getElementById(fId).style.width = c + '%';
+    if (c >= val) clearInterval(iv);
+  }, 16);
+}
+
+function updateKpis() {
+  document.getElementById('kpi1').textContent = stats.queries;
+  document.getElementById('kpi2').textContent = stats.cleared;
+  document.getElementById('kpi3').textContent = stats.flagged;
+  document.getElementById('kpi4').textContent = stats.networks;
+}
+
+// ══════════════════════════════════════════════════
+//  D3 NETWORK GRAPH
+// ══════════════════════════════════════════════════
+function renderNetwork(network) {
+  const container = document.getElementById('netContainer');
+  const svg = d3.select('#netSvg');
+  svg.selectAll('*').remove();
+  const W = container.clientWidth || 600, H = 300;
+  svg.attr('width', W).attr('height', H);
+  const colors = { company: '#e8a020', individual: '#0fc44e', subsidiary: '#4dd8e8', foreign: '#ff5244' };
+  const nodes = network.nodes.map(n => ({ ...n }));
+  const nodeIds = new Set(nodes.map(n => n.id));
+  const links = network.edges
+    .filter(e => nodeIds.has(e.from) && nodeIds.has(e.to))
+    .map(e => ({ source: e.from, target: e.to, label: e.label }));
+
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(90))
+    .force('charge', d3.forceManyBody().strength(-240))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('collision', d3.forceCollide(34));
+
+  const defs = svg.append('defs');
+  defs.append('marker').attr('id', 'arr').attr('viewBox', '0 -5 10 10')
+    .attr('refX', 18).attr('refY', 0).attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+    .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#254d5e');
+
+  const g = svg.append('g');
+  svg.call(d3.zoom().scaleExtent([0.3, 2.5]).on('zoom', e => g.attr('transform', e.transform)));
+
+  const link = g.append('g').selectAll('line').data(links).enter()
+    .append('line').attr('stroke', '#1c3a47').attr('stroke-width', 1.5).attr('marker-end', 'url(#arr)');
+
+  const ll = g.append('g').selectAll('text').data(links).enter()
+    .append('text').attr('font-size', 8).attr('fill', '#254d5e')
+    .attr('font-family', 'Share Tech Mono, monospace').attr('text-anchor', 'middle').text(d => d.label);
+
+  const tip = document.getElementById('gTip');
+  const node = g.append('g').selectAll('g').data(nodes).enter().append('g')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }))
+    .on('mouseover', (e, d) => {
+      tip.innerHTML = `<strong>${d.label}</strong><br><span style="color:var(--dim);font-size:9px;">${(d.type||'').toUpperCase()} · LEVEL ${d.level}</span>`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 12) + 'px';
+      tip.style.top = (e.clientY - 10) + 'px';
+    })
+    .on('mouseout', () => { tip.style.display = 'none'; });
+
+  node.append('circle')
+    .attr('r', d => d.level === 0 ? 18 : 13)
+    .attr('fill', d => colors[d.type] || '#4a7a96').attr('fill-opacity', 0.1)
+    .attr('stroke', d => colors[d.type] || '#4a7a96').attr('stroke-width', d => d.level === 0 ? 2 : 1.5);
+
+  node.append('text').attr('text-anchor', 'middle').attr('dy', '0.35em')
+    .attr('font-size', d => d.level === 0 ? 9 : 8)
+    .attr('font-family', 'Share Tech Mono, monospace')
+    .attr('fill', d => colors[d.type] || '#4a7a96')
+    .text(d => { const w = d.label.split(' '); return w.length > 2 ? w.slice(0, 2).join(' ') + '…' : d.label; });
+
+  sim.on('tick', () => {
+    link.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    ll.attr('x', d => (d.source.x + d.target.x) / 2).attr('y', d => (d.source.y + d.target.y) / 2);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  CHAT
+// ══════════════════════════════════════════════════
+function onChatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+function sendChip(el) { document.getElementById('chatInput').value = el.textContent.toLowerCase(); sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('chatSend').disabled = true;
+  appendMsg('user', msg);
+  const tid = appendTyping();
+  chatHistory.push({ role: 'user', content: msg });
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: chatHistory.slice(-8) }),
+    });
+    const result = await res.json();
+    removeTyping(tid);
+    const reply = result.error ? '⚠ Error: ' + result.error : (result.text || 'Analysis complete.');
+    appendMsg('bot', reply);
+    chatHistory.push({ role: 'assistant', content: result.text || '' });
+  } catch (err) {
+    removeTyping(tid);
+    appendMsg('bot', '⚠ Request failed: ' + err.message);
+  } finally {
+    document.getElementById('chatSend').disabled = false;
+  }
+}
+
+function appendMsg(role, text) {
+  const log = document.getElementById('chatLog');
+  const av = role === 'user' ? 'U' : '🔍';
+  const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const div = document.createElement('div');
+  div.className = `msg ${role} fade-in`;
+  div.innerHTML = `<div class="msg-av">${av}</div><div><div class="msg-bubble">${fmtMd(text)}</div><div class="msg-time">CHECK AM · ${time}</div></div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function appendTyping() {
+  const log = document.getElementById('chatLog');
+  const id = 'typ-' + Date.now();
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'msg bot';
+  div.innerHTML = `<div class="msg-av">🔍</div><div><div class="msg-bubble"><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div></div></div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+function fmtMd(t) {
+  if (!t) return '';
+  return t
+    .replace(/##\s(.+)/g, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^[-•]\s(.+)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^(?!<)/, '<p>')
+    .replace(/(?<!>)$/, '</p>');
+}
+</script>
+</body>
+</html>
