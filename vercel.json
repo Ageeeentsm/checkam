@@ -1,15 +1,14 @@
-" id="41852"}
 {
   "framework": null,
   "outputDirectory": "public",
-
   "functions": {
-    "api/**/.js": {
-      "runtime": "nodejs@18.x"
+    "api/*.js": {
+      "runtime": "nodejs20.x"
     }
   },
-
   "rewrites": [
     { "source": "/api/search", "destination": "/api/search" },
-    { "source": "/api/chat", "destination": "/api/chat" },
-    { "source": "/(.)", "destination": "/index.
+    { "source": "/api/chat",   "destination": "/api/chat"   },
+    { "source": "/(.*)",       "destination": "/index.html" }
+  ]
+}
