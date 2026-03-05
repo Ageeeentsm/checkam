@@ -1,0 +1,8 @@
+{
+  "name": "checkam",
+  "version": "1.0.0",
+  "description": "Check Am — Nigeria Business Intelligence Platform",
+  "engines": {
+    "node": "20.x"
+  }
+}
