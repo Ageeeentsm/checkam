@@ -1,0 +1,9 @@
+{
+  "framework": null,
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/search", "destination": "/api/search" },
+    { "source": "/api/chat",   "destination": "/api/chat"   },
+    { "source": "/(.*)",       "destination": "/index.html" }
+  ]
+}
