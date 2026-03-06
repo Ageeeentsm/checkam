@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Check Am — Nigeria Business Intelligence</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet"/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--void:#04080a;--deep:#070f12;--raised:#0f1f26;--lifted:#152a34;--rim:#1c3a47;--wire:#254d5e;--amber:#e8a020;--amber2:#c8840a;--amber3:#f0c060;--green:#0d9b3e;--green2:#0fc44e;--red:#d63b2f;--red2:#ff5244;--ice:#4dd8e8;--fog:#2a6070;--text:#c8d8dc;--dim:#6a8f9a;--ghost:#2c4a55;--rw:220px;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--void);overflow:hidden;}
+body{font-family:'Karla',sans-serif;color:var(--text);}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9000;}
+
+/* BOOT */
+#boot{position:fixed;inset:0;background:var(--void);z-index:8000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;}
+.be{width:86px;height:86px;position:relative;flex-shrink:0;}
+.ber{position:absolute;inset:0;border-radius:50%;border:2px solid;animation:ber 2s ease-in-out infinite;}
+.ber:nth-child(1){border-color:var(--amber);}
+.ber:nth-child(2){border-color:rgba(232,160,32,.3);animation-delay:.35s;transform:scale(.7);}
+.ber:nth-child(3){border-color:rgba(232,160,32,.1);animation-delay:.7s;transform:scale(.42);}
+@keyframes ber{0%,100%{opacity:1;}50%{opacity:.2;}}
+.bec{position:absolute;inset:30%;background:var(--amber);border-radius:50%;box-shadow:0 0 22px var(--amber),0 0 50px rgba(232,160,32,.35);animation:bec 1.6s ease-in-out infinite;}
+@keyframes bec{0%,100%{transform:scale(1);}50%{transform:scale(1.3);}}
+.bn{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,8vw,50px);letter-spacing:.2em;color:var(--amber);text-shadow:0 0 35px rgba(232,160,32,.6);line-height:1;}
+.bt{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.14em;text-align:center;margin-top:2px;}
+.bl{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green2);width:min(380px,88vw);min-height:72px;display:flex;flex-direction:column;gap:3px;}
+.bll{opacity:0;animation:bll .2s ease forwards;}
+@keyframes bll{to{opacity:1;}}
+.bw{width:min(380px,88vw);height:2px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.bb{height:100%;background:linear-gradient(90deg,var(--amber2),var(--amber),var(--amber3));width:0%;transition:width .06s linear;box-shadow:0 0 10px var(--amber);}
+
+/* APP */
+#app{display:flex;height:100vh;opacity:0;transition:opacity .6s ease;overflow:hidden;}
+#app.visible{opacity:1;}
+#railOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:299;}
+@media(max-width:768px){#railOverlay.on{display:block;}.rail{position:fixed!important;left:-100%!important;top:0;height:100vh;z-index:300;transition:left .28s ease;}.rail.open{left:0!important;}.main{width:100%!important;}}
+
+/* RAIL */
+.rail{width:var(--rw);min-width:var(--rw);background:var(--deep);border-right:1px solid var(--rim);display:flex;flex-direction:column;overflow:hidden;}
+.rh{padding:13px 12px 10px;border-bottom:1px solid var(--rim);}
+.rl{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.rn{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.14em;color:var(--amber);line-height:1;}
+.rtag{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.1em;line-height:1.6;}
+.rst{display:flex;align-items:center;gap:5px;margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--green2);}
+.rsd{width:5px;height:5px;background:var(--green2);border-radius:50%;box-shadow:0 0 5px var(--green2);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.ns{padding:6px 6px 0;}
+.nl{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--ghost);letter-spacing:.13em;padding:0 6px;margin:6px 0 2px;}
+.ni{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:3px;cursor:pointer;font-size:11px;color:var(--dim);transition:all .12s;margin-bottom:1px;border-left:2px solid transparent;user-select:none;}
+.ni:hover{background:var(--raised);color:var(--text);}
+.ni.active{background:rgba(232,160,32,.07);color:var(--amber);border-left-color:var(--amber);}
+.nic{font-size:11px;width:13px;text-align:center;flex-shrink:0;}
+.nbdg{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:1px 4px;border-radius:2px;}
+.nbdg.g{background:rgba(13,155,62,.1);color:var(--green2);border:1px solid rgba(13,155,62,.2);}
+.nbdg.a{background:rgba(232,160,32,.1);color:var(--amber);border:1px solid rgba(232,160,32,.2);}
+.lf{flex:1;border-top:1px solid var(--rim);padding:8px 10px;overflow:hidden;min-height:0;}
+.lft{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.12em;margin-bottom:5px;}
+.lfi{font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--ghost);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.02);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:slide .3s ease;}
+@keyframes slide{from{opacity:0;transform:translateX(-3px);}to{opacity:1;transform:none;}}
+.lfi span{color:var(--amber3);}
+.lfi.real{color:var(--text);}.lfi.real span{color:var(--green2);}
+.rng{height:3px;background:linear-gradient(90deg,#008751 33%,#fff 33%,#fff 66%,#008751 66%);opacity:.25;flex-shrink:0;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.tb{height:43px;background:var(--deep);border-bottom:1px solid var(--rim);display:flex;align-items:center;padding:0 13px;gap:7px;flex-shrink:0;}
+.tbmenu{display:none;background:none;border:none;color:var(--amber);font-size:17px;cursor:pointer;padding:0 5px 0 0;flex-shrink:0;}
+@media(max-width:768px){.tbmenu{display:flex;align-items:center;}}
+.tbn{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.12em;color:var(--amber);opacity:.5;}
+.tbs{color:var(--ghost);font-size:10px;}
+.tbc{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);}
+.tbc span{color:var(--text);}
+.tbr{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.tbcl{font-family:'Share Tech Mono',monospace;font-size:9.5px;color:var(--dim);}
+@media(max-width:480px){.tbcl{display:none;}}
+.ttag{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:2px 5px;border-radius:2px;letter-spacing:.04em;}
+.tconf{background:rgba(214,59,47,.1);color:var(--red2);border:1px solid rgba(214,59,47,.2);}
+.tlive{background:rgba(13,155,62,.08);color:var(--green2);border:1px solid rgba(13,155,62,.18);}
+.tng{background:rgba(0,135,81,.1);color:#2ecc71;border:1px solid rgba(0,135,81,.22);}
+@media(max-width:480px){.tconf,.tng{display:none;}}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden;}
+.panel.active{display:flex;flex-direction:column;}
+
+/* SCROLL AREA */
+.sp{flex:1;overflow-y:auto;overflow-x:hidden;padding:13px;display:flex;flex-direction:column;gap:11px;}
+.sp::-webkit-scrollbar{width:3px;}
+.sp::-webkit-scrollbar-thumb{background:var(--rim);}
+
+/* ═══ SEARCH BOX WITH AUTOCOMPLETE ══════════════════════════════ */
+.cmd{background:var(--deep);border:1px solid var(--rim);border-top:2px solid var(--amber);border-radius:3px;padding:12px 13px;}
+.cmd-top{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;}
+.type-sw{display:flex;gap:5px;flex-shrink:0;}
+@media(max-width:600px){.type-sw{width:100%;}}
+.tsb{padding:8px 11px;background:var(--raised);border:1px solid var(--rim);border-left:2px solid transparent;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:9.5px;color:var(--dim);cursor:pointer;transition:all .12s;white-space:nowrap;}
+.tsb.active{background:rgba(232,160,32,.07);border-color:var(--amber);border-left-color:var(--amber);color:var(--amber);}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.s-pre{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--amber);pointer-events:none;z-index:2;}
+#searchInput{width:100%;min-height:40px;background:var(--raised);border:1px solid var(--rim);border-radius:2px;padding:9px 10px 9px 26px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;transition:border-color .15s;}
+#searchInput:focus{border-color:var(--amber);}
+#searchInput::placeholder{color:var(--ghost);font-size:11px;}
+.go-btn{background:var(--amber);color:var(--void);border:none;border-radius:2px;padding:0 16px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.1em;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.go-btn:hover{background:var(--amber3);box-shadow:0 4px 14px rgba(232,160,32,.4);}
+.go-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* AUTOCOMPLETE DROPDOWN */
+#suggest-box{position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--deep);border:1px solid var(--amber);border-top:2px solid var(--amber);border-radius:0 0 3px 3px;z-index:500;display:none;max-height:280px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+#suggest-box.on{display:block;}
+#suggest-box::-webkit-scrollbar{width:3px;}
+#suggest-box::-webkit-scrollbar-thumb{background:var(--rim);}
+.sug-header{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);padding:5px 10px 3px;letter-spacing:.1em;border-bottom:1px solid var(--rim);}
+.sug-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;cursor:pointer;transition:background .1s;border-bottom:1px solid rgba(255,255,255,.03);}
+.sug-item:hover,.sug-item.hi{background:rgba(232,160,32,.07);}
+.sug-icon{font-size:13px;flex-shrink:0;padding-top:1px;}
+.sug-main{flex:1;min-width:0;}
+.sug-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sug-sub{font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sug-rc{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--amber);flex-shrink:0;}
+.sug-src{font-family:'Share Tech Mono',monospace;font-size:7px;padding:1px 4px;border-radius:2px;flex-shrink:0;margin-top:2px;}
+.sug-src.cac{background:rgba(13,155,62,.08);color:var(--green2);border:1px solid rgba(13,155,62,.18);}
+.sug-src.web{background:rgba(77,216,232,.06);color:var(--ice);border:1px solid rgba(77,216,232,.15);}
+.sug-loading{padding:10px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+.sug-none{padding:10px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ghost);text-align:center;}
+
+/* RC number helper */
+.rc-hint{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:5px;}
+.rc-hint span{color:var(--amber);}
+
+/* QUICK SEARCHES */
+.qrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px;align-items:center;}
+.ql{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.08em;flex-shrink:0;}
+.qt{font-family:'Share Tech Mono',monospace;font-size:8.5px;padding:2px 7px;border:1px solid var(--rim);border-radius:2px;cursor:pointer;color:var(--dim);background:var(--raised);transition:all .12s;white-space:nowrap;}
+.qt:hover{border-color:var(--amber);color:var(--amber);}
+
+/* KPI */
+.kr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+@media(max-width:600px){.kr{grid-template-columns:repeat(2,1fr);}}
+.kc{background:var(--deep);border:1px solid var(--rim);border-radius:2px;padding:9px 11px;position:relative;overflow:hidden;}
+.kc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;}
+.kc.a::after{background:var(--amber);}.kc.g::after{background:var(--green2);}.kc.r::after{background:var(--red2);}.kc.i::after{background:var(--ice);}
+.kl{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.07em;margin-bottom:3px;}
+.kv{font-family:'Bebas Neue',sans-serif;font-size:23px;line-height:1;}
+.kc.a .kv{color:var(--amber);}.kc.g .kv{color:var(--green2);}.kc.r .kv{color:var(--red2);}.kc.i .kv{color:var(--ice);}
+.ks{font-size:8.5px;color:var(--ghost);margin-top:1px;}
+
+/* MAP */
+#mapWrap{display:none;position:relative;border:1px solid var(--rim);border-radius:2px;overflow:hidden;height:clamp(260px,35vw,400px);}
+#mapWrap.on{display:block;}
+#mapGL{position:absolute;inset:0;width:100%;height:100%;}
+.mscan{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);animation:mscan 3s linear infinite;opacity:.35;z-index:5;pointer-events:none;}
+@keyframes mscan{0%{top:0;}100%{top:100%;}}
+.mhud{position:absolute;top:9px;left:9px;display:flex;flex-direction:column;gap:3px;z-index:10;pointer-events:none;max-width:62%;}
+.hud{font-family:'Share Tech Mono',monospace;font-size:8.5px;padding:2px 7px;background:rgba(4,8,10,.92);border:1px solid var(--rim);border-left:2px solid var(--amber);border-radius:2px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hud.g{border-left-color:var(--green2);color:var(--green2);}
+.hud.i{border-left-color:var(--ice);color:var(--ice);}
+.mtog{position:absolute;top:9px;right:9px;z-index:10;display:flex;flex-direction:column;gap:3px;}
+.mtb{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:3px 7px;background:rgba(4,8,10,.92);border:1px solid var(--rim);border-radius:2px;color:var(--dim);cursor:pointer;transition:all .12s;}
+.mtb.active{border-color:var(--amber);color:var(--amber);}
+.mrad{position:absolute;bottom:9px;right:9px;width:48px;height:48px;z-index:10;pointer-events:none;}
+.mrc{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(232,160,32,.14);}
+.mrc:nth-child(2){inset:22%;}.mrc:nth-child(3){inset:44%;border-color:rgba(232,160,32,.35);}
+.mrs{position:absolute;top:50%;left:50%;width:50%;height:1px;transform-origin:0 50%;background:linear-gradient(90deg,var(--amber),transparent);animation:rot 2s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg);}}
+
+/* LOADING */
+#ll{display:none;flex-direction:column;align-items:center;justify-content:center;padding:44px 20px;gap:11px;}
+#ll.on{display:flex;}
+.spin{width:36px;height:36px;border:2px solid var(--rim);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.llab{font-family:'Share Tech Mono',monospace;font-size:10.5px;color:var(--amber);letter-spacing:.1em;}
+.lstep{font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--dim);}
+.lsrcs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:3px;}
+.lsrc{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:2px 5px;border:1px solid var(--rim);border-radius:2px;color:var(--ghost);transition:all .3s;}
+.lsrc.on{border-color:var(--green2);color:var(--green2);}
+
+/* EMPTY */
+#es{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:44px 20px;gap:9px;text-align:center;}
+.eg{font-size:38px;opacity:.08;}
+.et{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.12em;color:var(--fog);}
+.esb{font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--ghost);max-width:300px;line-height:2;}
+
+/* RESULTS */
+#rw{display:none;}
+.actbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.actbtn{display:flex;align-items:center;gap:4px;padding:6px 11px;background:var(--raised);border:1px solid var(--rim);border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--dim);cursor:pointer;transition:all .12s;}
+.actbtn:hover{border-color:var(--amber);color:var(--amber);}
+.actbtn.primary{background:rgba(232,160,32,.07);border-color:var(--amber);color:var(--amber);}
+.rg{display:flex;gap:11px;}
+@media(max-width:900px){.rg{flex-direction:column;}.rs{width:100%!important;}}
+.rm{flex:1;display:flex;flex-direction:column;gap:9px;min-width:0;}
+.rs{width:238px;display:flex;flex-direction:column;gap:9px;}
+
+/* CARDS */
+.ic{background:var(--deep);border:1px solid var(--rim);border-radius:2px;overflow:hidden;}
+.ich{display:flex;align-items:center;gap:5px;padding:7px 11px;border-bottom:1px solid var(--rim);background:rgba(255,255,255,.01);flex-wrap:wrap;}
+.ici{font-size:11px;flex-shrink:0;}
+.ict{font-family:'Bebas Neue',sans-serif;font-size:11.5px;letter-spacing:.07em;color:var(--text);flex:1;min-width:60px;}
+.ibdg{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:2px 5px;border-radius:2px;white-space:nowrap;}
+.bok{background:rgba(13,155,62,.1);color:var(--green2);border:1px solid rgba(13,155,62,.2);}
+.bwn{background:rgba(232,160,32,.08);color:var(--amber);border:1px solid rgba(232,160,32,.18);}
+.brk{background:rgba(214,59,47,.1);color:var(--red2);border:1px solid rgba(214,59,47,.22);}
+.bice{background:rgba(77,216,232,.07);color:var(--ice);border:1px solid rgba(77,216,232,.18);}
+.icb{padding:10px 11px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+@media(max-width:480px){.fg{grid-template-columns:1fr;}}
+.fi{display:flex;flex-direction:column;gap:2px;}
+.fil{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.06em;}
+.fiv{font-size:11px;color:var(--text);word-break:break-word;}
+.fiv.mo{font-family:'Share Tech Mono',monospace;color:var(--amber);font-size:10px;}
+.fiv.ok{color:var(--green2);}.fiv.rk{color:var(--red2);}
+.nb2{padding:5px 7px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:8px;margin-top:5px;line-height:1.5;}
+.nba{background:rgba(232,160,32,.04);border:1px solid rgba(232,160,32,.13);color:var(--amber);}
+.nbi{background:rgba(77,216,232,.04);border:1px solid rgba(77,216,232,.13);color:var(--ice);}
+.nbg{background:rgba(13,155,62,.04);border:1px solid rgba(13,155,62,.13);color:var(--green2);}
+.nbr{background:rgba(214,59,47,.04);border:1px solid rgba(214,59,47,.13);color:var(--red2);}
+.cactag{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:1px 5px;border-radius:2px;background:rgba(77,216,232,.07);color:var(--ice);border:1px solid rgba(77,216,232,.15);}
+.cactag.found{background:rgba(13,155,62,.07);color:var(--green2);border-color:rgba(13,155,62,.2);}
+
+/* DIRECTOR ROWS */
+.dl{display:flex;flex-direction:column;gap:4px;}
+.dr{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--raised);border:1px solid var(--rim);border-left:2px solid var(--ghost);border-radius:2px;cursor:pointer;transition:all .12s;}
+.dr:hover{border-left-color:var(--amber);background:rgba(232,160,32,.04);}
+.dr:hover .dn{color:var(--amber);}.dr:hover .dlink{color:var(--amber);}
+.dai{width:23px;height:23px;background:var(--lifted);border:1px solid var(--wire);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;color:var(--amber);flex-shrink:0;}
+.dn{font-size:11px;flex:1;transition:color .12s;}
+.drl{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);}
+.dlink{font-size:8.5px;color:var(--ghost);flex-shrink:0;transition:color .12s;}
+
+/* REGULATORY */
+.reglist{display:flex;flex-direction:column;gap:5px;}
+.regrow{display:flex;gap:7px;align-items:flex-start;padding:7px 9px;background:var(--raised);border-radius:2px;border-left:2px solid var(--ghost);}
+.regrow.high{border-left-color:var(--red2);}.regrow.medium{border-left-color:var(--amber);}.regrow.low{border-left-color:var(--fog);}.regrow.clear{border-left-color:var(--green2);}
+.regi{font-size:12px;flex-shrink:0;padding-top:1px;}
+.regtop{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;}
+.regsrc{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:1px 5px;border-radius:2px;}
+.regsrc.hi{background:rgba(214,59,47,.08);color:var(--red2);border:1px solid rgba(214,59,47,.18);}
+.regsrc.md{background:rgba(232,160,32,.07);color:var(--amber);border:1px solid rgba(232,160,32,.18);}
+.regsrc.ok{background:rgba(13,155,62,.07);color:var(--green2);border:1px solid rgba(13,155,62,.18);}
+.regt{font-size:11px;color:var(--text);line-height:1.5;margin-bottom:2px;}
+.regt a{color:inherit;text-decoration:none;}.regt a:hover{color:var(--amber);}
+.regm{font-size:9.5px;color:var(--dim);line-height:1.4;}
+
+/* MEDIA */
+.med{display:flex;flex-direction:column;gap:5px;}
+.mar{display:flex;gap:6px;align-items:flex-start;padding:7px 8px;background:var(--raised);border-radius:2px;border-left:2px solid var(--ghost);}
+.mar.positive{border-left-color:var(--green2);}.mar.negative{border-left-color:var(--red2);}.mar.neutral{border-left-color:var(--fog);}.mar.research{border-left-color:var(--ice);}
+.mai{font-size:11px;flex-shrink:0;padding-top:1px;}
+.mah{font-size:11px;color:var(--text);line-height:1.5;margin-bottom:2px;}
+.mah a{color:inherit;text-decoration:none;}.mah a:hover{color:var(--amber);}
+.mas{font-size:9.5px;color:var(--dim);line-height:1.4;margin-top:2px;}
+.mam{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ghost);}
+
+/* GAUGES */
+.gs{display:flex;flex-direction:column;gap:8px;}
+.gg{display:flex;flex-direction:column;gap:2px;}
+.gt{display:flex;justify-content:space-between;align-items:baseline;}
+.gn{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.05em;}
+.gv{font-family:'Bebas Neue',sans-serif;font-size:15px;}
+.gtr{height:3px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.gf{height:100%;border-radius:1px;transition:width 1.1s cubic-bezier(.23,1,.32,1);}
+.gg.leg .gv{color:var(--green2);}.gg.leg .gf{background:linear-gradient(90deg,var(--green),var(--green2));}
+.gg.rsk .gv{color:var(--red2);}.gg.rsk .gf{background:linear-gradient(90deg,var(--red),var(--red2));}
+.gg.inf .gv{color:var(--ice);}.gg.inf .gf{background:linear-gradient(90deg,var(--fog),var(--ice));}
+.vb{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:2px;margin-top:6px;}
+.vlow{background:rgba(13,155,62,.06);border:1px solid rgba(13,155,62,.18);}
+.vmed{background:rgba(232,160,32,.05);border:1px solid rgba(232,160,32,.18);}
+.vhigh{background:rgba(214,59,47,.06);border:1px solid rgba(214,59,47,.2);}
+.vd{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.vlow .vd{background:var(--green2);box-shadow:0 0 5px var(--green2);}
+.vmed .vd{background:var(--amber);box-shadow:0 0 5px var(--amber);}
+.vhigh .vd{background:var(--red2);box-shadow:0 0 5px var(--red2);animation:pulse 1s ease-in-out infinite;}
+.vl{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.07em;}
+.vlow .vl{color:var(--green2);}.vmed .vl{color:var(--amber);}.vhigh .vl{color:var(--red2);}
+.vc{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);}
+
+/* FLAGS */
+.fr{display:flex;flex-wrap:wrap;gap:3px;}
+.fl2{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:2px 6px;border-radius:2px;}
+.fp2{background:rgba(77,216,232,.07);color:var(--ice);border:1px solid rgba(77,216,232,.18);}
+.fe2{background:rgba(214,59,47,.08);color:var(--red2);border:1px solid rgba(214,59,47,.18);}
+.ff2{background:rgba(232,160,32,.07);color:var(--amber);border:1px solid rgba(232,160,32,.18);}
+.fc2{background:rgba(13,155,62,.07);color:var(--green2);border:1px solid rgba(13,155,62,.18);font-size:8.5px;}
+
+/* NETWORK */
+#nc{height:clamp(210px,28vw,260px);background:var(--raised);position:relative;overflow:hidden;}
+#nsvg{width:100%;height:100%;}
+.nleg{position:absolute;bottom:6px;left:6px;background:rgba(4,8,10,.92);border:1px solid var(--rim);border-radius:2px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;}
+.nli{display:flex;align-items:center;gap:3px;font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);}
+.nld{width:5px;height:5px;border-radius:50%;}
+.dsrc{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.dss{font-family:'Share Tech Mono',monospace;font-size:7.5px;padding:2px 5px;border-radius:2px;background:rgba(77,216,232,.05);border:1px solid rgba(77,216,232,.14);color:var(--ice);}
+.hl{display:flex;flex-direction:column;gap:6px;}
+.hh{display:flex;justify-content:space-between;margin-bottom:2px;}
+.hn{font-size:11px;color:var(--text);}
+.hp{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--amber);}
+.hbt{height:2px;background:var(--raised);border-radius:1px;overflow:hidden;}
+.hbf{height:100%;background:linear-gradient(90deg,var(--amber2),var(--amber));}
+
+/* CHAT */
+.cw2{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#lockBanner{background:rgba(232,160,32,.06);border-bottom:1px solid rgba(232,160,32,.2);padding:7px 13px;align-items:center;gap:8px;flex-shrink:0;}
+#scanBanner{background:rgba(77,216,232,.04);border-bottom:1px solid rgba(77,216,232,.15);padding:6px 13px;align-items:center;gap:7px;flex-shrink:0;}
+.clog{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:10px;}
+.clog::-webkit-scrollbar{width:3px;}
+.clog::-webkit-scrollbar-thumb{background:var(--rim);}
+.msg{display:flex;gap:7px;max-width:88%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.mav{width:25px;height:25px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.msg.user .mav{background:var(--amber);color:var(--void);font-family:'Bebas Neue',sans-serif;font-size:12px;}
+.msg.bot .mav{background:var(--raised);border:1px solid var(--rim);}
+.mb{padding:8px 10px;border-radius:2px;font-size:11px;line-height:1.75;}
+.msg.user .mb{background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.18);border-bottom-right-radius:0;}
+.msg.bot .mb{background:var(--deep);border:1px solid var(--rim);border-bottom-left-radius:0;}
+.mb h3{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.06em;color:var(--amber);margin:6px 0 2px;}
+.mb h3:first-child{margin-top:0;}
+.mb strong{color:var(--amber3);}
+.mb ul{padding-left:12px;margin:3px 0;}
+.mt2{font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--ghost);margin-top:2px;}
+.typ{display:flex;gap:3px;padding:2px 0;align-items:center;}
+.td{width:4px;height:4px;background:var(--dim);border-radius:50%;animation:tdot 1.2s ease-in-out infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.3;}30%{transform:translateY(-4px);opacity:1;}}
+.cbar{border-top:1px solid var(--rim);background:var(--deep);padding:8px 13px 11px;}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.chip{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 6px;background:var(--raised);border:1px solid var(--rim);border-radius:2px;color:var(--dim);cursor:pointer;transition:all .12s;}
+.chip:hover{border-color:var(--amber);color:var(--amber);}
+.crow{display:flex;gap:5px;align-items:flex-end;}
+.cta{flex:1;background:var(--raised);border:1px solid var(--rim);border-radius:2px;padding:7px 9px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;resize:none;max-height:90px;outline:none;transition:border-color .15s;line-height:1.5;}
+.cta:focus{border-color:var(--amber);}
+.cta::placeholder{color:var(--ghost);}
+.csend{background:var(--amber);border:none;border-radius:2px;width:31px;height:31px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--void);transition:all .15s;flex-shrink:0;}
+.csend:hover{background:var(--amber3);}
+.csend:disabled{opacity:.3;cursor:not-allowed;}
+
+/* MISC */
+.fin{animation:fin .3s ease;}
+@keyframes fin{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+#tip{position:fixed;background:var(--deep);border:1px solid var(--wire);border-radius:2px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--text);pointer-events:none;z-index:4000;display:none;max-width:190px;}
+.mapboxgl-ctrl-logo,.mapboxgl-ctrl-attrib{opacity:.22!important;}
+</style>
+</head>
+<body>
+
+<!-- BOOT -->
+<div id="boot">
+  <div class="be"><div class="ber"></div><div class="ber"></div><div class="ber"></div><div class="bec"></div></div>
+  <div style="font-size:26px">🇳🇬</div>
+  <div><div class="bn">CHECK AM</div><div class="bt">NIGERIA BUSINESS INTELLIGENCE · v4.0</div></div>
+  <div class="bl" id="bootLog"></div>
+  <div class="bw"><div class="bb" id="bootBar"></div></div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--ghost);letter-spacing:.09em">LIVE · CAC · EFCC · ICPC · CBN · COURTS · NIGERIAN NEWS</div>
+</div>
+
+<div id="tip"></div>
+<div id="railOverlay" onclick="closeRail()"></div>
+
+<div id="app">
+  <!-- RAIL -->
+  <aside class="rail" id="rail">
+    <div class="rh">
+      <div class="rl"><div style="font-size:14px">🇳🇬</div><div class="rn">CHECK AM</div></div>
+      <div class="rtag">NIGERIA BUSINESS INTELLIGENCE</div>
+      <div class="rst"><div class="rsd"></div><span>LIVE · ALL SOURCES ACTIVE</span></div>
+    </div>
+    <div class="ns">
+      <div class="nl">OPERATIONS</div>
+      <div class="ni active" onclick="switchPanel('search');closeRail();" id="nav-search"><span class="nic">🔍</span>Entity Search</div>
+      <div class="ni" onclick="switchPanel('chat');closeRail();" id="nav-chat"><span class="nic">⬡</span>Intelligence Chat<span class="nbdg a">AI</span></div>
+    </div>
+    <div class="ns">
+      <div class="nl">LIVE DATA SOURCES</div>
+      <div class="ni"><span class="nic">🏛</span>CAC Registry<span class="nbdg g">LIVE</span></div>
+      <div class="ni"><span class="nic">🔴</span>EFCC · ICPC · CBN</div>
+      <div class="ni"><span class="nic">⚖️</span>Courts · SEC · FIRS</div>
+      <div class="ni"><span class="nic">📰</span>15 Nigerian News Outlets</div>
+      <div class="ni"><span class="nic">🔬</span>Research & Analysis Blogs</div>
+      <div class="ni"><span class="nic">🛰</span>Satellite Imagery</div>
+    </div>
+    <div class="lf">
+      <div class="lft">LIVE QUERY FEED</div>
+      <div id="liveFeed"></div>
+    </div>
+    <div class="rng"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="tb">
+      <button class="tbmenu" onclick="openRail()">☰</button>
+      <div class="tbn">CHECK AM</div><div class="tbs">›</div>
+      <div class="tbc"><span id="crumb">Entity Search</span></div>
+      <div class="tbr">
+        <div class="tbcl" id="clock">--:--:--</div>
+        <div class="ttag tng">🇳🇬</div>
+        <div class="ttag tconf">CONFIDENTIAL</div>
+        <div class="ttag tlive">● LIVE</div>
+      </div>
+    </div>
+
+    <!-- SEARCH PANEL -->
+    <div class="panel active" id="panel-search">
+      <div class="sp" id="spanel">
+
+        <div class="cmd fin">
+          <div class="cmd-top">
+            <div class="type-sw">
+              <button class="tsb active" id="typeCo" onclick="setType('company')">🏢 COMPANY</button>
+              <button class="tsb" id="typeInd" onclick="setType('individual')">👤 INDIVIDUAL</button>
+            </div>
+            <div class="search-wrap">
+              <span class="s-pre">›</span>
+              <input id="searchInput" autocomplete="off" spellcheck="false"
+                placeholder="Company name, RC number, or person's full name..."
+                oninput="onSearchInput(this.value)"
+                onkeydown="onSearchKey(event)"
+                onfocus="onSearchFocus()"
+                onblur="setTimeout(()=>closeSuggest(),200)"/>
+              <div id="suggest-box">
+                <div class="sug-header" id="sugHeader">SEARCHING CAC + WEB...</div>
+                <div id="sugList"></div>
+              </div>
+            </div>
+            <button class="go-btn" id="searchBtn" onclick="runSearch()">SEARCH</button>
+          </div>
+          <div class="rc-hint">
+            <span>TIP:</span> Search by RC number e.g. <span>RC123456</span> or just type <span>123456</span> · Or type a partial name for live suggestions
+          </div>
+          <div class="qrow">
+            <span class="ql">TRY:</span>
+            <span class="qt" onclick="qs('Dangote Group','company')">Dangote Group</span>
+            <span class="qt" onclick="qs('Access Bank Plc','company')">Access Bank</span>
+            <span class="qt" onclick="qs('Shell Nigeria','company')">Shell Nigeria</span>
+            <span class="qt" onclick="qs('MTN Nigeria','company')">MTN Nigeria</span>
+            <span class="qt" onclick="qs('Aliko Dangote','individual')">Aliko Dangote</span>
+            <span class="qt" onclick="qs('Tony Elumelu','individual')">Tony Elumelu</span>
+            <span class="qt" onclick="qs('Zenith Bank Plc','company')">Zenith Bank</span>
+            <span class="qt" onclick="qs('Jim Ovia','individual')">Jim Ovia</span>
+          </div>
+        </div>
+
+        <div class="kr fin">
+          <div class="kc a"><div class="kl">CHECKS RUN</div><div class="kv" id="k1">0</div><div class="ks">This session</div></div>
+          <div class="kc g"><div class="kl">CLEARED</div><div class="kv" id="k2">0</div><div class="ks">Low risk</div></div>
+          <div class="kc r"><div class="kl">FLAGGED</div><div class="kv" id="k3">0</div><div class="ks">High risk</div></div>
+          <div class="kc i"><div class="kl">NETWORKS</div><div class="kv" id="k4">0</div><div class="ks">Mapped</div></div>
+        </div>
+
+        <div id="mapWrap">
+          <div id="mapGL"></div>
+          <div class="mscan"></div>
+          <div class="mhud">
+            <div class="hud" id="hudS">GEOLOCATION INITIALISING...</div>
+            <div class="hud g" id="hudC">LAT: — · LNG: —</div>
+            <div class="hud i" id="hudA">ADDRESS: —</div>
+          </div>
+          <div class="mtog">
+            <div class="mtb active" onclick="setMapStyle('satellite')" id="btnSat">🛰 SAT</div>
+            <div class="mtb" onclick="setMapStyle('hybrid')" id="btnHyb">🔀 HYB</div>
+            <div class="mtb" onclick="setMapStyle('street')" id="btnStr">🗺 STR</div>
+          </div>
+          <div class="mrad"><div class="mrc"></div><div class="mrc"></div><div class="mrc"></div><div class="mrs"></div></div>
+        </div>
+
+        <div id="ll">
+          <div class="spin"></div>
+          <div class="llab">SCANNING ALL SOURCES...</div>
+          <div class="lstep" id="lstep">Initialising...</div>
+          <div class="lsrcs">
+            <span class="lsrc" id="src0">CAC</span><span class="lsrc" id="src1">EFCC</span>
+            <span class="lsrc" id="src2">ICPC</span><span class="lsrc" id="src3">CBN</span>
+            <span class="lsrc" id="src4">SEC</span><span class="lsrc" id="src5">COURTS</span>
+            <span class="lsrc" id="src6">FIRS</span><span class="lsrc" id="src7">NEWS</span>
+            <span class="lsrc" id="src8">AI</span>
+          </div>
+        </div>
+
+        <div id="es">
+          <div class="eg">🇳🇬</div>
+          <div class="et">READY TO CHECK AM</div>
+          <div class="esb">TYPE A NAME FOR LIVE SUGGESTIONS · SEARCH BY RC NUMBER · PULLS FROM CAC · EFCC · ICPC · CBN · COURTS · NIGERIAN NEWS · RESEARCH BLOGS</div>
+        </div>
+
+        <div id="rw">
+          <div class="actbar fin">
+            <button class="actbtn primary" onclick="downloadPDF()">⬇ PDF REPORT</button>
+            <button class="actbtn" onclick="shareReport()">🔗 SHARE</button>
+            <button class="actbtn" onclick="printReport()">🖨 PRINT</button>
+            <span style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)" id="reportTime"></span>
+          </div>
+          <div class="rg" id="reportBody">
+            <div class="rm">
+              <div class="ic fin"><div class="ich"><span class="ici" id="pIcon">🏢</span><span class="ict" id="pTitle">PROFILE</span><span class="ibdg bok" id="pBadge">ACTIVE</span><span class="cactag" id="cacTag">CAC</span></div><div class="icb" id="pBody"></div></div>
+              <div class="ic fin"><div class="ich"><span class="ici">👥</span><span class="ict" id="dTitle">DIRECTORS</span><span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--fog);margin-left:auto">CLICK → INVESTIGATE</span></div><div class="icb"><div class="dl" id="dList"></div></div></div>
+              <div class="ic fin"><div class="ich"><span class="ici">⚖️</span><span class="ict">REGULATORY & ENFORCEMENT</span><span class="ibdg" id="regBdg"></span></div><div class="icb"><div class="reglist" id="regList"></div></div></div>
+              <div class="ic fin"><div class="ich"><span class="ici">🕸</span><span class="ict">NETWORK MAP</span><span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)" id="netStat">—</span></div><div class="icb" style="padding:0"><div id="nc"><svg id="nsvg"></svg><div class="nleg"><div style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);margin-bottom:1px">LEGEND</div><div class="nli"><div class="nld" style="background:var(--amber)"></div>COMPANY</div><div class="nli"><div class="nld" style="background:var(--green2)"></div>INDIVIDUAL</div><div class="nli"><div class="nld" style="background:var(--ice)"></div>RELATED</div><div class="nli"><div class="nld" style="background:var(--fog)"></div>MENTIONED</div></div></div></div></div>
+              <div class="ic fin"><div class="ich"><span class="ici">📰</span><span class="ict">MEDIA & INTELLIGENCE</span><span class="ibdg" id="mediaBdg" style="display:none"></span></div><div class="icb"><div class="med" id="mediaList"></div></div></div>
+            </div>
+            <div class="rs">
+              <div class="ic fin"><div class="ich"><span class="ici">⚡</span><span class="ict">RISK ASSESSMENT</span></div><div class="icb"><div class="gs"><div class="gg leg"><div class="gt"><span class="gn">LEGITIMACY</span><span class="gv" id="gL">—</span></div><div class="gtr"><div class="gf" id="gLF" style="width:0%"></div></div></div><div class="gg rsk"><div class="gt"><span class="gn">RISK EXPOSURE</span><span class="gv" id="gR">—</span></div><div class="gtr"><div class="gf" id="gRF" style="width:0%"></div></div></div><div class="gg inf"><div class="gt"><span class="gn">INFLUENCE</span><span class="gv" id="gI">—</span></div><div class="gtr"><div class="gf" id="gIF" style="width:0%"></div></div></div></div><div id="vbar" class="vb" style="display:none"></div><div class="dsrc" id="dataSrcs"></div></div></div>
+              <div class="ic fin"><div class="ich"><span class="ici">🚩</span><span class="ict">FLAGS</span></div><div class="icb"><div class="fr" id="flagR"></div><div id="flagCl" class="fl2 fc2" style="display:none">✓ NO FLAGS</div></div></div>
+              <div class="ic fin" id="holdCard" style="display:none"><div class="ich"><span class="ici">📊</span><span class="ict">SHAREHOLDING</span></div><div class="icb"><div class="hl" id="holdList"></div></div></div>
+              <div class="ic fin" id="sumCard" style="display:none"><div class="ich"><span class="ici">📋</span><span class="ict">AI SUMMARY</span><span class="ibdg bice">SYNTHESISED</span></div><div class="icb"><div id="sumText" style="font-size:10.5px;color:var(--dim);line-height:1.85"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div class="panel" id="panel-chat">
+      <div class="cw2">
+        <div id="lockBanner" style="display:none;flex-shrink:0;">
+          <div style="width:6px;height:6px;background:var(--amber);border-radius:50%;box-shadow:0 0 6px var(--amber);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);letter-spacing:.09em">LOCKED IN ON</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.07em;color:var(--amber)" id="lockName">—</div>
+          </div>
+          <div id="lockRisk"></div>
+          <div id="lockFlags" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+          <button onclick="clearLock()" style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim);background:none;border:1px solid var(--rim);border-radius:2px;padding:2px 6px;cursor:pointer;flex-shrink:0;white-space:nowrap;">✕ CLEAR</button>
+        </div>
+        <div id="scanBanner" style="display:none;flex-shrink:0;">
+          <div class="spin" style="width:13px;height:13px;border-width:1.5px;border-top-color:var(--ice);flex-shrink:0;"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--ice)" id="scanText">SCANNING...</div>
+        </div>
+        <div class="clog" id="chatLog">
+          <div class="msg bot fin">
+            <div class="mav">🔍</div>
+            <div>
+              <div class="mb"><strong>Check Am v4.0 — Intelligence Chat.</strong><br><br>Just name any Nigerian company or individual and I'll lock in, run a live scan across all databases, and brief you like a due diligence analyst.<br><br>Try: <em>"Check Dangote Group"</em> or <em>"Investigate Tony Elumelu"</em> or type any RC number.</div>
+              <div class="mt2">READY · ALL SOURCES ACTIVE</div>
+            </div>
+          </div>
+        </div>
+        <div class="cbar">
+          <div class="chips" id="chatChips">
+            <span class="chip" onclick="sendChip(this)">Check Dangote Group</span>
+            <span class="chip" onclick="sendChip(this)">Investigate Tony Elumelu</span>
+            <span class="chip" onclick="sendChip(this)">Check Access Bank</span>
+            <span class="chip" onclick="sendChip(this)">Who is Jim Ovia?</span>
+            <span class="chip" onclick="sendChip(this)">Check Shell Nigeria</span>
+          </div>
+          <div class="crow">
+            <textarea class="cta" id="chatInput" rows="1" placeholder="Name a company or person to investigate..." onkeydown="onCKey(event)" oninput="autoGrow(this)"></textarea>
+            <button class="csend" id="chatSend" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── BOOT ─────────────────────────────────────────────────────────
+const BLOG=['> INITIALISING CHECK AM v4.0...','> CAC NIGERIA REGISTRY... CONNECTED','> EFCC ENFORCEMENT DATABASE... CONNECTED','> ICPC PROSECUTION RECORDS... CONNECTED','> CBN DEBARMENT LIST... CONNECTED','> COURT RECORDS... CONNECTED','> NIGERIAN NEWS SOURCES × 15... CONNECTED','> MAPBOX SATELLITE IMAGERY... CONNECTED','> AUTOCOMPLETE ENGINE... READY','> ALL SYSTEMS OPERATIONAL'];
+(async()=>{
+  const log=document.getElementById('bootLog'),bar=document.getElementById('bootBar');
+  for(let i=0;i<BLOG.length;i++){
+    await sl(200);
+    const d=document.createElement('div');d.className='bll';d.textContent=BLOG[i];log.appendChild(d);
+    bar.style.width=((i+1)/BLOG.length*100)+'%';
+  }
+  await sl(380);
+  const b=document.getElementById('boot');b.style.transition='opacity .5s ease';b.style.opacity='0';
+  await sl(520);b.style.display='none';
+  document.getElementById('app').classList.add('visible');
+  startClock();startFeed();
+})();
+function sl(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtMd(t){if(!t)return'';return t.replace(/##\s(.+)/g,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^[-•]\s(.+)/gm,'<li>$1</li>').replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>').replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');}
+function showErr(msg){const d=document.createElement('div');d.style.cssText='position:fixed;bottom:14px;right:14px;background:#0f1f26;border:1px solid #ff5244;border-left:3px solid #ff5244;padding:9px 13px;font-family:Share Tech Mono,monospace;font-size:9.5px;color:#ff5244;z-index:9500;border-radius:2px;max-width:min(360px,90vw);line-height:1.6;';d.textContent='⚠ '+msg;document.body.appendChild(d);setTimeout(()=>d.remove(),7000);}
+function showMsg(msg){const d=document.createElement('div');d.style.cssText='position:fixed;bottom:14px;right:14px;background:#0f1f26;border:1px solid #0fc44e;border-left:3px solid #0fc44e;padding:9px 13px;font-family:Share Tech Mono,monospace;font-size:9.5px;color:#0fc44e;z-index:9500;border-radius:2px;max-width:min(360px,90vw);';d.textContent='✓ '+msg;document.body.appendChild(d);setTimeout(()=>d.remove(),3500);}
+
+// ── CLOCK ─────────────────────────────────────────────────────────
+function startClock(){const el=document.getElementById('clock');setInterval(()=>{el.textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' WAT';},1000);}
+
+// ── LIVE FEED ─────────────────────────────────────────────────────
+const BG=[['SCAN','CAC registry · Lagos entities'],['CHECK','EFCC enforcement scan'],['QUERY','Court records · Abuja division'],['SCAN','CBN debarment check'],['CHECK','Nigerian news · 14 articles'],['SCAN','Network mapping · 8 nodes'],['QUERY','SEC Nigeria operator check'],['CHECK','ICPC prosecution records'],];
+let fi=0;
+function startFeed(){const el=document.getElementById('liveFeed');pushFeed(el,BG[fi++%BG.length],false);setInterval(()=>pushFeed(el,BG[fi++%BG.length],false),3100);}
+function pushFeed(el,item,real){if(!el)el=document.getElementById('liveFeed');const d=document.createElement('div');d.className='lfi'+(real?' real':'');d.innerHTML=`<span>${esc(item[0])}</span> ${esc(item[1])}`;el.insertBefore(d,el.firstChild);while(el.children.length>7)el.removeChild(el.lastChild);}
+function feedSearch(entity,type,reg,scores){
+  const el=document.getElementById('liveFeed');
+  pushFeed(el,[`QUERY·${type==='company'?'CORP':'INDIV'}`,entity.toUpperCase()],true);
+  setTimeout(()=>pushFeed(el,['CAC','Registry scan done'],true),400);
+  setTimeout(()=>pushFeed(el,['EFCC','Enforcement check done'],true),850);
+  setTimeout(()=>pushFeed(el,['NEWS','Media scan done'],true),1600);
+  if(scores){setTimeout(()=>{const r=scores.risk_score||0;pushFeed(el,[r>50?'FLAG ⚠':r>35?'WARN':'CLEAR ✓',`${scores.rating} · ${entity.toUpperCase()}`],true);},2200);}
+  const hits=[reg?.efcc?.found&&'EFCC',reg?.icpc?.found&&'ICPC',reg?.cbn?.found&&'CBN',reg?.courts?.found&&'COURTS'].filter(Boolean);
+  if(hits.length)setTimeout(()=>pushFeed(el,['FLAG ⚠',`REGULATORY: ${hits.join(' · ')}`],true),2800);
+}
+
+// ── PANELS ────────────────────────────────────────────────────────
+function switchPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');document.getElementById('nav-'+n).classList.add('active');document.getElementById('crumb').textContent=n==='search'?'Entity Search':'Intelligence Chat';}
+function openRail(){document.getElementById('rail').classList.add('open');document.getElementById('railOverlay').classList.add('on');}
+function closeRail(){document.getElementById('rail').classList.remove('open');document.getElementById('railOverlay').classList.remove('on');}
+
+// ── STATE ─────────────────────────────────────────────────────────
+let currentType='company',chatHistory=[],stats={q:0,c:0,f:0,n:0};
+let mapboxMap=null,lastResult=null,lastEntity='';
+let suggestTimer=null,suggestIdx=-1;
+const MAP_STYLES={satellite:'mapbox://styles/mapbox/satellite-v9',street:'mapbox://styles/mapbox/dark-v11',hybrid:'mapbox://styles/mapbox/satellite-streets-v12'};
+
+function setType(t){
+  currentType=t;
+  document.getElementById('typeCo').classList.toggle('active',t==='company');
+  document.getElementById('typeInd').classList.toggle('active',t==='individual');
+  const inp=document.getElementById('searchInput');
+  inp.placeholder=t==='company'?'Company name, RC number e.g. RC123456 or 123456...':'Full name of director, officer or individual...';
+  const val=inp.value.trim();if(val.length>=2)triggerSuggest(val);
+}
+function qs(name,type){setType(type);document.getElementById('searchInput').value=name;closeSuggest();runSearch();}
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────────────
+function onSearchFocus(){const v=document.getElementById('searchInput').value.trim();if(v.length>=2)triggerSuggest(v);}
+function onSearchInput(val){
+  clearTimeout(suggestTimer);
+  if(val.trim().length<2){closeSuggest();return;}
+  // Show loading state immediately
+  showSuggestLoading();
+  suggestTimer=setTimeout(()=>triggerSuggest(val.trim()),320);
+}
+function onSearchKey(e){
+  const box=document.getElementById('suggest-box');
+  const items=box.querySelectorAll('.sug-item');
+  if(e.key==='ArrowDown'){e.preventDefault();suggestIdx=Math.min(suggestIdx+1,items.length-1);highlightSug(items);}
+  else if(e.key==='ArrowUp'){e.preventDefault();suggestIdx=Math.max(suggestIdx-1,-1);highlightSug(items);}
+  else if(e.key==='Enter'){
+    if(suggestIdx>=0&&items[suggestIdx]){items[suggestIdx].click();}
+    else{closeSuggest();runSearch();}
+  }
+  else if(e.key==='Escape'){closeSuggest();}
+}
+function highlightSug(items){items.forEach((el,i)=>el.classList.toggle('hi',i===suggestIdx));}
+
+async function triggerSuggest(val){
+  try{
+    const res=await fetch(`/api/suggest?q=${encodeURIComponent(val)}&type=${currentType}`);
+    const data=await res.json();
+    renderSuggestions(data.suggestions||[],val,data.is_rc);
+  }catch(_){closeSuggest();}
+}
+
+function showSuggestLoading(){
+  const box=document.getElementById('suggest-box');
+  document.getElementById('sugHeader').textContent='SEARCHING CAC REGISTRY + WEB...';
+  document.getElementById('sugList').innerHTML='<div class="sug-loading">⟳ Searching...</div>';
+  box.classList.add('on');
+  suggestIdx=-1;
+}
+
+function renderSuggestions(items,query,isRC){
+  const box=document.getElementById('suggest-box');
+  const list=document.getElementById('sugList');
+  const hdr=document.getElementById('sugHeader');
+  if(!items.length){
+    hdr.textContent='NO MATCHES FOUND';
+    list.innerHTML=`<div class="sug-none">No records found for "${esc(query)}"<br><span style="color:var(--amber);font-size:8px">Press ENTER to run a full search anyway</span></div>`;
+    box.classList.add('on');return;
+  }
+  const cacCount=items.filter(i=>i.source==='CAC').length;
+  hdr.textContent=`${items.length} RESULT${items.length!==1?'S':''} · ${cacCount} CAC VERIFIED`;
+  list.innerHTML=items.map((item,idx)=>{
+    const icon=item.type==='individual'?'👤':item.source==='CAC'?'🏛':'🌐';
+    const srcCls=item.source==='CAC'?'cac':'web';
+    return`<div class="sug-item" data-idx="${idx}" onclick="selectSug('${esc(item.value||item.name||'')}','${esc(item.rc||'')}')">
+      <div class="sug-icon">${icon}</div>
+      <div class="sug-main">
+        <div class="sug-name">${esc(item.label||item.name||item.value||'')}</div>
+        <div class="sug-sub">${esc(item.sublabel||item.snippet||'')}</div>
+      </div>
+      ${item.rc?`<div class="sug-rc">RC ${esc(item.rc)}</div>`:''}
+      <div class="sug-src ${srcCls}">${esc(item.source||'')}</div>
+    </div>`;
+  }).join('');
+  box.classList.add('on');
+  suggestIdx=-1;
+}
+
+function selectSug(name,rc){
+  document.getElementById('searchInput').value=name;
+  closeSuggest();
+  runSearch();
+}
+function closeSuggest(){document.getElementById('suggest-box').classList.remove('on');suggestIdx=-1;}
+
+// ── MAPBOX ────────────────────────────────────────────────────────
+function initMap(token,lat,lng,address){
+  const wrap=document.getElementById('mapWrap');wrap.classList.add('on');
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('hudS').textContent='SATELLITE LOCK ACQUIRED';
+  document.getElementById('hudC').textContent=`LAT: ${lat.toFixed(5)}N · LNG: ${lng.toFixed(5)}E`;
+  document.getElementById('hudA').textContent=(address||'NIGERIA').substring(0,55);
+  if(!token){
+    document.getElementById('mapGL').innerHTML=`<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-.015},${lat-.01},${lng+.015},${lat+.01}&layer=mapnik&marker=${lat},${lng}" style="width:100%;height:100%;border:none;opacity:.8;filter:invert(.85) hue-rotate(180deg)"></iframe>`;
+    return;
+  }
+  try{
+    mapboxgl.accessToken=token;
+    if(mapboxMap){mapboxMap.remove();mapboxMap=null;}
+    mapboxMap=new mapboxgl.Map({container:'mapGL',style:MAP_STYLES.satellite,center:[lng,lat],zoom:15,pitch:50,bearing:-15});
+    mapboxMap.on('load',()=>{
+      mapboxMap.addLayer({id:'3d-buildings',source:'composite','source-layer':'building',filter:['==','extrude','true'],type:'fill-extrusion',minzoom:14,paint:{'fill-extrusion-color':'#e8a020','fill-extrusion-height':['get','height'],'fill-extrusion-opacity':.22}});
+      const el=document.createElement('div');
+      el.style.cssText='width:16px;height:16px;background:#e8a020;border:3px solid #f0c060;border-radius:50%;box-shadow:0 0 16px #e8a020,0 0 30px rgba(232,160,32,.5);';
+      new mapboxgl.Marker({element:el,anchor:'center'}).setLngLat([lng,lat]).setPopup(new mapboxgl.Popup().setHTML(`<div style="font-family:Share Tech Mono,monospace;font-size:9px;color:#e8a020;background:#04080a;padding:5px 8px">${esc(address||'Registered Address')}</div>`)).addTo(mapboxMap);
+      mapboxMap.flyTo({center:[lng,lat],zoom:17,pitch:60,bearing:30,duration:2400,essential:true});
+    });
+    document.getElementById('mapGL').style.background=MAP_STYLES.satellite;
+  }catch(e){document.getElementById('mapGL').innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:Share Tech Mono,monospace;font-size:9.5px;color:var(--dim)">Add MAPBOX_TOKEN to Vercel env vars for satellite imagery</div>`;}
+}
+function setMapStyle(s){['btnSat','btnHyb','btnStr'].forEach(id=>document.getElementById(id).classList.remove('active'));document.getElementById(s==='satellite'?'btnSat':s==='hybrid'?'btnHyb':'btnStr').classList.add('active');if(mapboxMap)mapboxMap.setStyle(MAP_STYLES[s]);}
+function resetMap(){document.getElementById('mapWrap').classList.remove('on');if(mapboxMap){mapboxMap.remove();mapboxMap=null;}document.getElementById('mapGL').innerHTML='';}
+
+// ── LOADING ───────────────────────────────────────────────────────
+const STEPS=['Querying CAC Nigeria registry...','Scanning EFCC enforcement database...','Checking ICPC conviction records...','Querying CBN debarment list...','Scanning SEC Nigeria records...','Checking court records...','Scanning FIRS notices...','Pulling Nigerian news & research...','Synthesising intelligence with AI...'];
+function startLoad(){
+  let i=0;const el=document.getElementById('lstep');
+  const ids=['src0','src1','src2','src3','src4','src5','src6','src7','src8'];let si=0;
+  const sv=setInterval(()=>{if(si<ids.length){const e=document.getElementById(ids[si++]);if(e)e.classList.add('on');}},1300);
+  const iv=setInterval(()=>{if(el)el.textContent=STEPS[i++%STEPS.length];},1050);
+  return()=>{clearInterval(iv);clearInterval(sv);ids.forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});};
+}
+
+// ── MAIN SEARCH ───────────────────────────────────────────────────
+async function runSearch(){
+  const entity=document.getElementById('searchInput').value.trim();
+  if(!entity)return;
+  closeSuggest();
+  resetMap();
+  document.getElementById('es').style.display='none';
+  document.getElementById('rw').style.display='none';
+  document.getElementById('ll').classList.add('on');
+  document.getElementById('searchBtn').disabled=true;
+  const stop=startLoad();
+  stats.q++;updateKpis();
+
+  try{
+    const res=await fetch('/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entity,type:currentType})});
+    const result=await res.json();
+    stop();document.getElementById('ll').classList.remove('on');
+    if(result.error){showErr(result.error);document.getElementById('es').style.display='flex';return;}
+    lastResult=result;lastEntity=entity;
+    feedSearch(entity,currentType,result.data?.regulatory,result.data?.scores);
+    renderResults(result,entity);
+  }catch(e){
+    stop();document.getElementById('ll').classList.remove('on');
+    document.getElementById('es').style.display='flex';showErr(e.message);
+  }finally{document.getElementById('searchBtn').disabled=false;}
+}
+
+// ── RENDER RESULTS ────────────────────────────────────────────────
+function renderResults(result,entityName){
+  const{data={},text}=result;
+  const company=data.company||{},individual=data.individual||{};
+  const reg=data.regulatory||{},media=data.media||{},network=data.network||{},scores=data.scores||{},geo=data.geo||{};
+  const isCompany=currentType==='company';
+
+  document.getElementById('rw').style.display='block';
+  document.getElementById('reportTime').textContent=`${new Date().toLocaleString('en-GB')} WAT`;
+
+  // CAC tag
+  const ct=document.getElementById('cacTag');
+  const cf=isCompany?company.cac_found:individual.cac_found;
+  ct.textContent=cf?'✓ CAC VERIFIED':'CAC NOT FOUND';ct.className='cactag'+(cf?' found':'');
+
+  // Profile
+  document.getElementById('pIcon').textContent=isCompany?'🏢':'👤';
+  document.getElementById('pTitle').textContent=isCompany?'CORPORATE PROFILE':'INDIVIDUAL PROFILE';
+  const st=company.status||'Active';
+  const pb=document.getElementById('pBadge');pb.textContent=st.toUpperCase();pb.className='ibdg '+(st.toLowerCase()==='active'?'bok':'brk');
+
+  if(isCompany){
+    document.getElementById('pBody').innerHTML=`<div class="fg">
+      <div class="fi"><div class="fil">COMPANY NAME</div><div class="fiv">${esc(company.name||entityName)}</div></div>
+      <div class="fi"><div class="fil">RC NUMBER</div><div class="fiv mo">${esc(company.rc_number||'Not in CAC')}</div></div>
+      <div class="fi"><div class="fil">STATUS</div><div class="fiv ${st.toLowerCase()==='active'?'ok':'rk'}">${esc(st)}</div></div>
+      <div class="fi"><div class="fil">INCORPORATED</div><div class="fiv">${esc(company.incorporated||'—')}</div></div>
+      <div class="fi"><div class="fil">TYPE</div><div class="fiv">${esc(company.type||'—')}</div></div>
+      <div class="fi"><div class="fil">EMAIL</div><div class="fiv">${esc(company.email||'—')}</div></div>
+      <div class="fi" style="grid-column:1/-1"><div class="fil">REGISTERED ADDRESS</div><div class="fiv">${esc(company.address||'—')}</div></div>
+    </div>
+    ${cf?'<div class="nb2 nbg">✓ Verified in CAC Nigeria public registry.</div>':'<div class="nb2 nba">⚠ Not found in CAC. May trade under a different name, or check the RC number directly.</div>'}
+    ${(company.cac_records||[]).length>1?`<div class="nb2 nbi">📋 ${company.cac_records.length} related CAC records found.</div>`:''}`;
+  }else{
+    document.getElementById('pBody').innerHTML=`<div class="fg">
+      <div class="fi"><div class="fil">FULL NAME</div><div class="fiv">${esc(individual.name||entityName)}</div></div>
+      <div class="fi"><div class="fil">LINKED COMPANIES</div><div class="fiv mo">${(individual.companies||[]).length} found</div></div>
+      <div class="fi"><div class="fil">PEP STATUS</div><div class="fiv ${individual.pep_status?'rk':'ok'}">${individual.pep_status?'⚠ PEP DETECTED':'✓ NOT PEP'}</div></div>
+      <div class="fi"><div class="fil">CAC DIRECTOR RECORDS</div><div class="fiv" style="color:var(--ice)">${individual.cac_found?'✓ FOUND':'NOT FOUND'}</div></div>
+    </div>
+    ${individual.pep_status?'<div class="nb2 nbr">⚠ Politically Exposed Person indicators detected.</div>':''}`;
+  }
+
+  // Directors / Associations
+  const dirs=isCompany?(company.directors||[]):(individual.companies||[]);
+  document.getElementById('dTitle').textContent=isCompany?'DIRECTORS & OFFICERS':'CORPORATE ASSOCIATIONS';
+  document.getElementById('dList').innerHTML=dirs.length?dirs.map(d=>{
+    const name=isCompany?(typeof d==='string'?d:d.name||String(d)):(d.company||String(d));
+    const role=isCompany?'Director':(d.role||'Director');
+    const rc=!isCompany&&d.rc&&d.rc!=='—'?` · ${d.rc}`:'';
+    const init=name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+    const sT=isCompany?name:(d.company||name);
+    const sType=isCompany?'individual':'company';
+    return`<div class="dr" onclick="qs('${esc(sT.replace(/'/g,"\\'"))}','${sType}')">
+      <div class="dai">${init}</div><div class="dn">${esc(name)}</div>
+      <div class="drl">${esc(role)}${esc(rc)}</div><div class="dlink">→ CHECK</div>
+    </div>`;
+  }).join(''):`<div style="font-family:'Share Tech Mono',monospace;font-size:8.5px;color:var(--ghost)">No director records found in CAC for this entity.</div>`;
+
+  // Shareholders
+  if((company.shareholders||[]).length){
+    document.getElementById('holdCard').style.display='block';
+    document.getElementById('holdList').innerHTML=company.shareholders.map(s=>`<div><div class="hh"><span class="hn">${esc(s.name||s)}</span><span class="hp">${s.percentage||'—'}%</span></div><div class="hbt"><div class="hbf" style="width:${Math.min(s.percentage||0,100)}%"></div></div></div>`).join('');
+  }
+
+  // Regulatory
+  renderRegulatory(reg);
+
+  // Network
+  if(network.nodes?.length){
+    document.getElementById('netStat').textContent=`${network.node_count} NODES · ${network.edge_count} EDGES`;
+    renderNetwork(network);stats.n++;
+  }
+
+  // Media
+  renderMedia(media);
+
+  // Scores
+  if(scores.legitimacy_score!==undefined){
+    animScore('gL','gLF',scores.legitimacy_score);animScore('gR','gRF',scores.risk_score);animScore('gI','gIF',scores.influence_score);
+    const vb=document.getElementById('vbar');vb.style.display='flex';
+    const rat=scores.rating||'MEDIUM RISK';
+    vb.className='vb '+(rat.includes('LOW')?'vlow':rat.includes('HIGH')?'vhigh':'vmed');
+    vb.innerHTML=`<div class="vd"></div><div class="vl">${rat}</div><div class="vc">CONF: ${scores.confidence||'MEDIUM'}</div>`;
+    if(rat.includes('LOW'))stats.c++;if(rat.includes('HIGH'))stats.f++;
+    document.getElementById('dataSrcs').innerHTML=(scores.data_sources||[]).map(s=>`<span class="dss">${esc(s)}</span>`).join('');
+  }
+
+  // Flags
+  const FLAG_MAP={EFCC_RECORD:{cls:'fe2',t:'EFCC RECORD'},ICPC_RECORD:{cls:'fe2',t:'ICPC RECORD'},CBN_ACTION:{cls:'fe2',t:'CBN ACTION'},SEC_SANCTION:{cls:'fe2',t:'SEC SANCTION'},COURT_RECORD:{cls:'ff2',t:'COURT RECORD'},FIRS_NOTICE:{cls:'ff2',t:'FIRS NOTICE'},PEP_LINKED:{cls:'fp2',t:'PEP LINKED'},NEGATIVE_PRESS:{cls:'ff2',t:'NEG. PRESS'},CRIMINAL_FLAG:{cls:'fe2',t:'⚠ CRIMINAL'}};
+  const flags=scores.flags||[];
+  const fr=document.getElementById('flagR'),fc=document.getElementById('flagCl');
+  if(flags.length){fr.innerHTML=flags.map(f=>{const m=FLAG_MAP[f]||{cls:'ff2',t:f.replace(/_/g,' ')};return`<div class="fl2 ${m.cls}">${m.t}</div>`;}).join('');fr.style.display='flex';fc.style.display='none';}
+  else{fr.style.display='none';fc.style.display='flex';}
+
+  // Summary
+  if(text){document.getElementById('sumCard').style.display='block';document.getElementById('sumText').innerHTML=fmtMd(text);}
+
+  // Map
+  if(geo.lat&&geo.lng)initMap(geo.mapbox_token||'',geo.lat,geo.lng,geo.address||entityName);
+  updateKpis();
+}
+
+// ── REGULATORY ────────────────────────────────────────────────────
+function renderRegulatory(reg){
+  const list=document.getElementById('regList');const bdg=document.getElementById('regBdg');
+  const sources=[{key:'efcc',label:'EFCC',icon:'🔴'},{key:'icpc',label:'ICPC',icon:'🔴'},{key:'cbn',label:'CBN',icon:'🟠'},{key:'sec',label:'SEC',icon:'🟠'},{key:'courts',label:'COURTS',icon:'🟡'},{key:'firs',label:'FIRS',icon:'🟡'}];
+  const hits=sources.filter(s=>reg[s.key]?.found);
+  bdg.style.display='inline-flex';
+  if(hits.length){bdg.textContent=`${hits.length} HIT${hits.length>1?'S':''}`;bdg.className='ibdg brk';}else{bdg.textContent='ALL CLEAR';bdg.className='ibdg bok';}
+  let html='';
+  sources.forEach(({key,label,icon})=>{
+    const src=reg[key];if(!src)return;
+    if(src.found&&(src.records||[]).length){
+      src.records.slice(0,3).forEach(r=>{
+        const sev=(r.severity||'').toLowerCase();
+        const cls=sev==='high'?'high':sev==='medium'?'medium':'low';
+        const srcCls=sev==='high'?'hi':sev==='medium'?'md':'ok';
+        html+=`<div class="regrow ${cls}">
+          <div class="regi">${icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="regtop"><span class="regsrc ${srcCls}">${label}</span><span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)">${esc(r.type||'')}</span></div>
+            ${r.title?`<div class="regt">${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>`:esc(r.title)}</div>`:''}
+            ${r.detail?`<div class="regt">${esc(r.detail)}</div>`:''}
+            ${r.snippet?`<div class="regm">${esc(r.snippet.substring(0,140))}</div>`:''}
+          </div>
+        </div>`;
+      });
+    }else if(!src.found){
+      html+=`<div class="regrow clear"><div class="regi">✅</div><div><div class="regtop"><span class="regsrc ok">${label}</span></div><div class="regm" style="color:var(--green2)">No records found</div></div></div>`;
+    }
+  });
+  if(!html)html='<div style="font-family:\'Share Tech Mono\',monospace;font-size:8.5px;color:var(--dim)">Add GOOGLE_API_KEY + GOOGLE_CX to enable live regulatory scans.</div>';
+  list.innerHTML=html;
+}
+
+// ── MEDIA ─────────────────────────────────────────────────────────
+function renderMedia(media){
+  const arts=media.articles||[];
+  const mb=document.getElementById('mediaBdg');
+  if(arts.length){
+    mb.style.display='inline-flex';
+    media.negative_count>1?(mb.textContent=`${media.negative_count} NEGATIVE`,mb.className='ibdg brk'):(mb.textContent=`${media.sentiment_score||0}% POS`,mb.className='ibdg bok');
+    document.getElementById('mediaList').innerHTML=arts.map(a=>{
+      const cls=a.type==='research'?'research':a.sentiment==='positive'?'positive':a.sentiment==='negative'?'negative':'neutral';
+      const ico=a.type==='research'?'🔬':a.sentiment==='positive'?'📈':a.sentiment==='negative'?'⚠️':'📄';
+      const rbdg=a.type==='research'?'<span style="font-family:\'Share Tech Mono\',monospace;font-size:7px;padding:1px 4px;background:rgba(77,216,232,.07);border:1px solid rgba(77,216,232,.17);color:var(--ice);border-radius:2px;margin-left:4px">RESEARCH</span>':'';
+      return`<div class="mar ${cls}">
+        <div class="mai">${ico}</div>
+        <div style="min-width:0">
+          <div class="mah">${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title||'')}</a>`:esc(a.title||'')}${rbdg}</div>
+          ${a.snippet?`<div class="mas">${esc(a.snippet.substring(0,115))}...</div>`:''}
+          <div class="mam">${esc(a.source||'')} · ${esc(a.date||'')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }else{
+    document.getElementById('mediaList').innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:8.5px;color:var(--ghost)">No news results. Add GOOGLE_API_KEY + GOOGLE_CX for live Nigerian news scanning.</div>';
+  }
+}
+
+// ── NETWORK (D3) ──────────────────────────────────────────────────
+function renderNetwork(network){
+  const cont=document.getElementById('nc'),svg=d3.select('#nsvg');
+  svg.selectAll('*').remove();
+  const W=cont.clientWidth||540,H=cont.clientHeight||250;
+  svg.attr('width',W).attr('height',H);
+  const COL={company:'#e8a020',individual:'#0fc44e',subsidiary:'#4dd8e8',related:'#4dd8e8',shareholder:'#c8840a',mentioned:'#2a6070',foreign:'#ff5244'};
+  const nodes=network.nodes.map(n=>({...n}));
+  const nodeIds=new Set(nodes.map(n=>n.id));
+  const links=network.edges.filter(e=>nodeIds.has(e.from)&&nodeIds.has(e.to)).map(e=>({source:e.from,target:e.to,label:e.label}));
+  const sim=d3.forceSimulation(nodes).force('link',d3.forceLink(links).id(d=>d.id).distance(85)).force('charge',d3.forceManyBody().strength(-200)).force('center',d3.forceCenter(W/2,H/2)).force('collision',d3.forceCollide(28));
+  const defs=svg.append('defs');
+  defs.append('marker').attr('id','arr').attr('viewBox','0 -5 10 10').attr('refX',17).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto').append('path').attr('d','M0,-5L10,0L0,5').attr('fill','#254d5e');
+  const g=svg.append('g');
+  svg.call(d3.zoom().scaleExtent([.2,3]).on('zoom',e=>g.attr('transform',e.transform)));
+  const link=g.append('g').selectAll('line').data(links).enter().append('line').attr('stroke','#1c3a47').attr('stroke-width',1.3).attr('marker-end','url(#arr)');
+  const ll=g.append('g').selectAll('text').data(links).enter().append('text').attr('font-size',7).attr('fill','#254d5e').attr('font-family','Share Tech Mono,monospace').attr('text-anchor','middle').text(d=>d.label);
+  const tip=document.getElementById('tip');
+  const node=g.append('g').selectAll('g').data(nodes).enter().append('g')
+    .call(d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;}).on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;}).on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+    .on('mouseover',(e,d)=>{tip.innerHTML=`<strong>${esc(d.label)}</strong><br><span style="color:var(--dim);font-size:7.5px">${(d.type||'').toUpperCase()}${d.clickable?' · CLICK TO INVESTIGATE':''}${d.rc?' · RC '+d.rc:''}</span>`;tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-7)+'px';})
+    .on('mouseout',()=>tip.style.display='none')
+    .on('click',(e,d)=>{if(d.clickable&&d.search)qs(d.search,d.searchType||'company');});
+  node.append('circle').attr('r',d=>d.level===0?15:10).attr('fill',d=>COL[d.type]||'#4a7a96').attr('fill-opacity',.12).attr('stroke',d=>COL[d.type]||'#4a7a96').attr('stroke-width',d=>d.level===0?2:1.5).style('cursor',d=>d.clickable?'pointer':'default');
+  node.append('text').attr('text-anchor','middle').attr('dy','.35em').attr('font-size',d=>d.level===0?8:7).attr('font-family','Share Tech Mono,monospace').attr('fill',d=>COL[d.type]||'#4a7a96').text(d=>{const w=d.label.split(' ');return w.length>2?w[0]+' '+w[1]:d.label;}).style('cursor',d=>d.clickable?'pointer':'default');
+  sim.on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);ll.attr('x',d=>(d.source.x+d.target.x)/2).attr('y',d=>(d.source.y+d.target.y)/2);node.attr('transform',d=>`translate(${d.x},${d.y})`);});
+}
+
+// ── SCORE ANIMATION ───────────────────────────────────────────────
+function animScore(lId,fId,val){let c=0;const step=val/50;const iv=setInterval(()=>{c=Math.min(c+step,val);document.getElementById(lId).textContent=Math.round(c);document.getElementById(fId).style.width=c+'%';if(c>=val)clearInterval(iv);},16);}
+function updateKpis(){document.getElementById('k1').textContent=stats.q;document.getElementById('k2').textContent=stats.c;document.getElementById('k3').textContent=stats.f;document.getElementById('k4').textContent=stats.n;}
+
+// ── PDF ───────────────────────────────────────────────────────────
+async function downloadPDF(){
+  if(!lastResult||!lastEntity){showErr('Run a search first.');return;}
+  try{
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const d=lastResult.data||{};
+    const isCompany=d.type==='company';
+    const co=d.company||{},ind=d.individual||{},scores=d.scores||{},reg=d.regulatory||{},media=d.media||{};
+    const PW=210,M=18,CW=174;let y=M;
+    const tx=(t,x,yy,o={})=>{doc.setFont(o.f||'helvetica',o.s||'normal');doc.setFontSize(o.sz||9);doc.setTextColor(...(o.c||[180,200,204]));doc.text(String(t),x,yy,{maxWidth:o.mw||CW});};
+    const ln=(yy)=>{doc.setDrawColor(28,58,71);doc.setLineWidth(.3);doc.line(M,yy,PW-M,yy);};
+    const chk=(n=10)=>{if(y+n>285){doc.addPage();y=M;hdr();}};
+    const hdr=()=>{doc.setFillColor(4,8,10);doc.rect(0,0,210,297,'F');doc.setFillColor(7,15,18);doc.rect(0,0,210,11,'F');doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(232,160,32);doc.text('CHECK AM — NIGERIA BUSINESS INTELLIGENCE — CONFIDENTIAL',M,7.5);doc.text(new Date().toLocaleString('en-GB')+' WAT',PW-M,7.5,{align:'right'});};
+    hdr();
+    // Title
+    doc.setFillColor(15,31,38);doc.rect(M-3,y-3,CW+6,30,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(232,160,32);doc.text('CHECK AM',M,y+7);
+    doc.setFontSize(8);doc.setTextColor(106,143,154);doc.text('INTELLIGENCE REPORT · '+new Date().toLocaleDateString('en-GB').toUpperCase(),M,y+14);
+    doc.setFontSize(13);doc.setTextColor(200,216,220);doc.text(lastEntity.toUpperCase(),M,y+24);
+    y+=35;ln(y);y+=7;
+    // Verdict
+    const rat=scores.rating||'MEDIUM RISK';
+    const rc=rat.includes('LOW')?[13,155,62]:rat.includes('HIGH')?[214,59,47]:[232,160,32];
+    doc.setFillColor(rc[0],rc[1],rc[2],.06);doc.setDrawColor(rc[0],rc[1],rc[2]);doc.setLineWidth(.5);
+    doc.roundedRect(M,y,CW,15,2,2,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(rc[0],rc[1],rc[2]);doc.text(rat,PW/2,y+9,{align:'center'});
+    doc.setFontSize(7.5);doc.setTextColor(106,143,154);doc.text(`LEGITIMACY ${scores.legitimacy_score||0}/100 · RISK ${scores.risk_score||0}/100 · INFLUENCE ${scores.influence_score||0}/100`,PW/2,y+14,{align:'center'});
+    y+=22;
+    // Profile
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,32);doc.text('PROFILE',M,y);y+=5;ln(y);y+=4;
+    const fields=isCompany?[['Name',co.name||lastEntity],['RC Number',co.rc_number||'Not found'],['Status',co.status||'—'],['Incorporated',co.incorporated||'—'],['Type',co.type||'—'],['Address',co.address||'—']]:
+      [['Name',ind.name||lastEntity],['PEP Status',ind.pep_status?'POLITICALLY EXPOSED':'Not PEP'],['Linked Companies',String((ind.companies||[]).length)],['CAC Records',ind.cac_found?'FOUND':'NOT FOUND']];
+    fields.forEach(([l,v])=>{chk(7);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(106,143,154);doc.text(l,M,y);doc.setFont('helvetica','normal');doc.setTextColor(180,200,204);const ls=doc.splitTextToSize(String(v),CW*.65);doc.text(ls,M+55,y);y+=Math.max(5,ls.length*4.2);});
+    y+=4;
+    // Regulatory
+    chk(14);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,32);doc.text('REGULATORY & ENFORCEMENT',M,y);y+=5;ln(y);y+=4;
+    const rkeys=['efcc','icpc','cbn','sec','courts','firs'];const rlabels={efcc:'EFCC',icpc:'ICPC',cbn:'CBN',sec:'SEC Nigeria',courts:'Courts',firs:'FIRS'};
+    let anyReg=false;
+    rkeys.forEach(k=>{const src=reg[k];if(src?.found){anyReg=true;src.records.slice(0,2).forEach(r=>{chk(14);const col=r.severity==='HIGH'?[214,59,47]:r.severity==='MEDIUM'?[232,160,32]:[77,216,232];doc.setFillColor(col[0],col[1],col[2],.05);doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(.3);doc.roundedRect(M,y,CW,13,1,1,'FD');doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(col[0],col[1],col[2]);doc.text(`${rlabels[k]} — ${r.severity||'FLAG'}`,M+3,y+5);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,200,204);const sn=doc.splitTextToSize((r.title||r.detail||r.snippet||'').substring(0,100),CW-8);doc.text(sn,M+3,y+10);y+=14+2;});}});
+    if(!anyReg){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(13,155,62);doc.text('✓ No enforcement or regulatory records found.',M,y);y+=7;}
+    y+=3;
+    // News
+    chk(14);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,32);doc.text('MEDIA & INTELLIGENCE',M,y);y+=5;ln(y);y+=4;
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(106,143,154);doc.text(`${(media.articles||[]).length} articles · Sentiment: ${media.sentiment_score||0}% positive · Negative: ${media.negative_count||0}`,M,y);y+=6;
+    (media.articles||[]).slice(0,5).forEach(a=>{chk(11);const col=a.sentiment==='negative'?[214,59,47]:a.sentiment==='positive'?[13,155,62]:[42,96,112];doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(.8);doc.line(M,y,M,y+9);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(180,200,204);const tt=doc.splitTextToSize((a.title||'').substring(0,88),CW-6);doc.text(tt,M+4,y+4);doc.setFontSize(6.5);doc.setTextColor(106,143,154);doc.text(`${a.source||''} · ${a.date||''} [${(a.sentiment||'').toUpperCase()}]`,M+4,y+9);y+=12;});
+    y+=3;
+    // Summary
+    if(lastResult.text){chk(18);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,32);doc.text('AI EXECUTIVE SUMMARY',M,y);y+=5;ln(y);y+=4;doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(180,200,204);const lines=doc.splitTextToSize(lastResult.text.replace(/\*\*/g,'').replace(/\*/g,'').replace(/##/g,''),CW);lines.forEach(l=>{chk(4.5);doc.text(l,M,y);y+=4.2;});y+=3;}
+    // Flags
+    chk(13);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,32);doc.text('INTELLIGENCE FLAGS',M,y);y+=5;ln(y);y+=4;
+    if((scores.flags||[]).length){scores.flags.forEach(f=>{chk(5);doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(214,59,47);doc.text(`⚠ ${f.replace(/_/g,' ')}`,M,y);y+=4.5;});}
+    else{doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(13,155,62);doc.text('✓ No risk flags detected',M,y);y+=5;}
+    // Footer
+    const tp=doc.getNumberOfPages();for(let p=1;p<=tp;p++){doc.setPage(p);doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(44,74,85);doc.text(`Check Am · ${lastEntity} · Page ${p}/${tp} · CONFIDENTIAL`,PW/2,290,{align:'center'});}
+    doc.save(`CheckAm_${lastEntity.replace(/\s+/g,'_')}_${new Date().toISOString().substring(0,10)}.pdf`);
+  }catch(e){showErr('PDF error: '+e.message);}
+}
+function shareReport(){const url=`${window.location.origin}?q=${encodeURIComponent(lastEntity)}&type=${currentType}`;navigator.clipboard?.writeText(url).then(()=>showMsg('Link copied.')).catch(()=>showMsg('URL: '+url));}
+function printReport(){window.print();}
+
+// ── CHAT ─────────────────────────────────────────────────────────
+let lockedEntity=null;
+function onCKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function autoGrow(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
+function sendChip(el){document.getElementById('chatInput').value=el.textContent;sendChat();}
+function setLockBanner(entity,type,risk,flags){
+  lockedEntity={entity,type,risk,flags};
+  const banner=document.getElementById('lockBanner');banner.style.display='flex';
+  document.getElementById('lockName').textContent=entity.toUpperCase()+' · '+(type==='company'?'COMPANY':'INDIVIDUAL');
+  const re=document.getElementById('lockRisk');re.textContent=(risk||'')+(risk?' RISK':'');
+  re.style.cssText=`font-family:'Share Tech Mono',monospace;font-size:8.5px;padding:2px 6px;border-radius:2px;${risk==='HIGH'?'background:rgba(214,59,47,.1);color:var(--red2);border:1px solid rgba(214,59,47,.2)':risk==='MEDIUM'?'background:rgba(232,160,32,.08);color:var(--amber);border:1px solid rgba(232,160,32,.18)':'background:rgba(13,155,62,.08);color:var(--green2);border:1px solid rgba(13,155,62,.18)'}`;
+  document.getElementById('lockFlags').innerHTML=(flags||[]).slice(0,3).map(f=>`<div style="font-family:'Share Tech Mono',monospace;font-size:7px;padding:1px 5px;border-radius:2px;background:rgba(214,59,47,.08);color:var(--red2);border:1px solid rgba(214,59,47,.16)">${esc(f.replace(/_/g,' '))}</div>`).join('');
+  document.getElementById('chatChips').innerHTML=[`What are the EFCC records for ${entity}?`,`Who are the directors of ${entity}?`,`Any court cases for ${entity}?`,`Should I do business with ${entity}?`,`What does Nigerian press say about ${entity}?`].map(q=>`<span class="chip" onclick="sendChip(this)">${q}</span>`).join('');
+}
+function clearLock(){
+  lockedEntity=null;document.getElementById('lockBanner').style.display='none';
+  document.getElementById('chatChips').innerHTML=`<span class="chip" onclick="sendChip(this)">Check Dangote Group</span><span class="chip" onclick="sendChip(this)">Investigate Tony Elumelu</span><span class="chip" onclick="sendChip(this)">Check Access Bank</span><span class="chip" onclick="sendChip(this)">Who is Jim Ovia?</span><span class="chip" onclick="sendChip(this)">Check Shell Nigeria</span>`;
+}
+function showScanBanner(t){const b=document.getElementById('scanBanner');b.style.display='flex';document.getElementById('scanText').textContent=`SCANNING ${t.toUpperCase()} — CAC · EFCC · ICPC · CBN · COURTS · NEWS...`;}
+function hideScanBanner(){document.getElementById('scanBanner').style.display='none';}
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';input.style.height='auto';
+  document.getElementById('chatSend').disabled=true;
+  appendMsg('user',msg);
+  const looksLikeEntity=/\b(check|investigate|who is|what is|tell me about|run|scan|look up|pull|find)\b/i.test(msg)||/^[A-Z][a-zA-Z\s&\.]{3,50}$/.test(msg.trim());
+  if(looksLikeEntity)showScanBanner(msg.replace(/^(check|investigate|who is|what is|tell me about)\s+/i,'').trim());
+  const tid=appendTyping();
+  chatHistory.push({role:'user',content:msg,lockedEntity});
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:chatHistory.slice(-10)})});
+    const result=await res.json();
+    hideScanBanner();removeTyping(tid);
+    if(result.error){appendMsg('bot','⚠ Error: '+result.error);return;}
+    if(result.lockedEntity&&result.intel)setLockBanner(result.lockedEntity.entity,result.lockedEntity.type,result.intel.risk,result.intel.flags);
+    if(result.scanning&&result.intel)appendMsgWithIntel('bot',result.text||'Analysis complete.',result.intel);
+    else appendMsg('bot',result.text||'Analysis complete.');
+    chatHistory.push({role:'assistant',content:result.text||'',lockedEntity:result.lockedEntity||lockedEntity,intel:result.intel});
+  }catch(e){hideScanBanner();removeTyping(tid);appendMsg('bot','⚠ Request failed: '+e.message);}
+  finally{document.getElementById('chatSend').disabled=false;}
+}
+function appendMsgWithIntel(role,text,intel){
+  const log=document.getElementById('chatLog');
+  const time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const rc=intel.risk==='HIGH'?'brk':intel.risk==='MEDIUM'?'bwn':'bok';
+  const regH=(intel.reg_hits||[]).map(h=>`<span style="font-family:'Share Tech Mono',monospace;font-size:7px;padding:1px 4px;border-radius:2px;background:rgba(214,59,47,.08);color:var(--red2);border:1px solid rgba(214,59,47,.16)">${h}</span>`).join('');
+  const bar=`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:5px 8px;background:var(--raised);border-radius:2px;margin-bottom:7px;border-left:2px solid ${intel.risk==='HIGH'?'var(--red2)':intel.risk==='MEDIUM'?'var(--amber)':'var(--green2)'}">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)">LIVE SCAN</span>
+    <span class="ibdg ${rc}">${intel.risk||'—'} RISK</span>
+    <span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)">CAC: ${intel.cac_found?'✓':'✗'}</span>
+    ${regH||'<span style="font-family:\'Share Tech Mono\',monospace;font-size:7.5px;color:var(--green2)">✓ NO REG FLAGS</span>'}
+    <span style="font-family:'Share Tech Mono',monospace;font-size:7.5px;color:var(--dim)">${intel.news_count||0} ARTICLES</span>
+  </div>`;
+  const div=document.createElement('div');div.className='msg bot fin';
+  div.innerHTML=`<div class="mav">🔍</div><div style="flex:1;min-width:0"><div class="mb">${bar}${fmtMd(text)}</div><div class="mt2">CHECK AM · LIVE · ${time}</div></div>`;
+  log.appendChild(div);log.scrollTop=log.scrollHeight;
+}
+function appendMsg(role,text){
+  const log=document.getElementById('chatLog');const time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');div.className=`msg ${role} fin`;
+  div.innerHTML=`<div class="mav">${role==='user'?'U':'🔍'}</div><div><div class="mb">${fmtMd(text)}</div><div class="mt2">CHECK AM · ${time}</div></div>`;
+  log.appendChild(div);log.scrollTop=log.scrollHeight;
+}
+function appendTyping(){const log=document.getElementById('chatLog');const id='t'+Date.now();const div=document.createElement('div');div.id=id;div.className='msg bot';div.innerHTML=`<div class="mav">🔍</div><div><div class="mb"><div class="typ"><div class="td"></div><div class="td"></div><div class="td"></div></div></div></div>`;log.appendChild(div);log.scrollTop=log.scrollHeight;return id;}
+function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
+
+// Auto-run from URL params
+window.addEventListener('load',()=>{const p=new URLSearchParams(window.location.search);if(p.get('q')){setType(p.get('type')||'company');document.getElementById('searchInput').value=p.get('q');runSearch();}});
+</script>
+</body>
+</html>
