@@ -1,0 +1,10 @@
+{
+  "name": "checkam",
+  "version": "4.0.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node api/search.js"
+  }
+}
